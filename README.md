@@ -1,89 +1,72 @@
-# Lexical & Semantic Retrieval on EB-NeRD and MIND
+# Learning from Click-Logs on EB-NeRD and MIND
 
-CS4.406 Information Retrieval & Extraction — Assignment 1.
+CS4.406 Information Retrieval & Extraction — Assignment 2. Continues
+[Assignment 1](https://github.com/codewithsajid/ire-a1-news-retrieval) (seeded from
+commit `8f7b52e`), which built the lexical and semantic retrieval this one re-ranks.
 
-One pipeline, two news-recommendation datasets, one schema: raw zips → cleaned parquet
-feature store → temporal split → BM25 and embedding candidate generation → an evaluation
-harness with bootstrap CIs and slices → Codabench submissions. Every number in the design
-note and in the tables below is read out of a JSON written by the code that produced it,
-so the prose cannot drift from the measurements.
+Behavioural features from the click logs → a LambdaMART re-ranker over A1's candidate
+generator → the NRMS starter baseline reproduced and beaten → serving and scale →
+submissions to both Codabench leaderboards. Every number in this README and in the
+design note is read out of a JSON written by the code that measured it, so the prose
+cannot drift from the run.
 
-| | EB-NeRD (Danish, Ekstra Bladet) | MIND (English, Microsoft) |
-|---|---|---|
-| articles (large) | 125,541 | 130,379 |
-| impressions (train / test) | 12.1M / 13.5M unlabelled | 2.23M / 2.37M unlabelled |
-| indexed text | title + subtitle (avgdl 15.7) | title + abstract (avgdl 31.7) |
-| live candidate universe (7 d) | 2,063 | 29,309 |
-
-Design note: [`reports/design_note.pdf`](reports/design_note.pdf) (4 pages).
-Systems ablation reports (`reports/l2/` … `reports/l5/`) are reproducible via `make l2` … `make l5`
-(gitignored — regenerated, not shipped).
+Design note: [`reports/a2_design_note.pdf`](reports/a2_design_note.pdf) (6 pages).
+Per-question reports: [`reports/q1/q1_features.md`](reports/q1/q1_features.md),
+[`q2/q2_reranker.md`](reports/q2/q2_reranker.md),
+[`q3/q3_baseline.md`](reports/q3/q3_baseline.md),
+[`q4/q4_serving.md`](reports/q4/q4_serving.md),
+[`q5/q5_evaluation.md`](reports/q5/q5_evaluation.md).
 
 ---
 
 ## 1. Results
 
-### Leaderboards (Codabench, hidden test set)
+### Re-ranking, in-impression — the question both leaderboards score
 
-| competition | submission | score | note |
+Test split, dev scale. *Before* is A1's best single signal on identical rows, which is
+the honest baseline for what **learning a combination** buys rather than what it buys
+over nothing. 95% bootstrap CIs in the generated reports.
+
+| | A1 emb (before) | re-ranked (shipped) | | re-ranked (production) |
+|---|---|---|---|---|
+| EB-NeRD AUC | 0.5453 | **0.7302** | +33.9% | *0.7812* |
+| EB-NeRD nDCG@10 | 0.4660 | **0.6041** | +29.6% | *0.6528* |
+| MIND AUC | 0.6368 | **0.6452** | +1.3% | *0.6990* |
+| MIND nDCG@10 | 0.3938 | **0.4021** | +2.1% | *0.4495* |
+
+`shipped` uses only features computable on a split with **no labels in it**, so it is
+what can go to Codabench. `production` adds the rolling click counters a live feature
+store would hold and the withheld test labels deny us. The gap is what the evaluation
+setup costs, not a leaderboard result.
+
+The 20× difference between the two datasets is coverage, not tuning: 87.7% of MIND's
+test users have no dated prior click and MIND ships no sessions at all, so its
+behavioural columns are structurally empty and the model falls back on content.
+
+### Stage one — the ceiling on the cascade
+
+| | recall@100 | recall@200 | impressions retrieving no click |
 |---|---|---|---|
-| [MIND](https://www.codabench.org/competitions/13967/) | decayed popularity | **0.4900** | three uploads, identical — below chance |
-| MIND | semantic (MiniLM, mean-pooled history) | **0.6496** | +32.6% over popularity |
-| [RecSys 2024 / EB-NeRD](https://www.codabench.org/competitions/2469/) | popularity + semantic | no score returned | organiser-run queue, ~8 days of backlog; diagnosed in §8 of the design note |
+| EB-NeRD | 0.1189 | 0.2074 | 88.0% → 79.2% |
+| MIND | 0.0441 | 0.0676 | 93.6% → 90.3% |
 
-Screenshots: [`reports/leaderboard/`](reports/leaderboard).
+Stage two cannot rank what stage one never retrieved. This is why the in-impression
+numbers above are the ones that carry, and the corpus-wide cascade is reported
+separately rather than blended into them.
 
-The popularity result is a finding, not a failure. It scores 0.5440 on dev and 0.4900 on
-the hidden test set, because the prior is counted strictly before a cutoff that the test
-week runs up to seven days past: 85.8% of candidate slots score exactly 0 and 31.4% of
-rows are a complete tie. The same rows ranked by content instead leave 1.0% of slots at
-zero. A stale prior does not degrade gracefully — it stops being a ranking.
+### Baseline reproduced, then beaten
 
-### Retrieval — recall@K (test split, large variants, live universe, seen articles dropped)
+NRMS-docvec from `ebnerd-benchmark`, ported to PyTorch layer for layer.
 
-Ceiling is the share of clicks reachable inside the candidate universe at all:
-0.9769 (EB-NeRD), 1.0000 (MIND).
+| | NRMS | + freshness (bounded) | Δ AUC (paired, 95% CI) |
+|---|---|---|---|
+| EB-NeRD | 0.6041 | 0.6097 | +0.0056 [+0.0046, +0.0068] |
+| MIND | 0.6467 | 0.6513 | +0.0045 [+0.0029, +0.0063] |
 
-| method | EB-NeRD @50 | @100 | @200 | MIND @50 | @100 | @200 |
-|---|---|---|---|---|---|---|
-| random | 0.0233 | 0.0473 | 0.0946 | 0.0018 | 0.0034 | 0.0070 |
-| popularity (prior) | 0.0169 | 0.0197 | 0.0230 | 0.0101 | 0.0585 | 0.0805 |
-| recency | 0.0143 | 0.0246 | 0.0271 | 0.0023 | 0.0031 | 0.0187 |
-| BM25 | 0.0428 | 0.0846 | 0.1577 | **0.0207** | **0.0332** | **0.0485** |
-| embeddings | **0.0581** | **0.1069** | **0.1900** | 0.0159 | 0.0283 | 0.0482 |
-
-Which retriever wins is a fact about the candidate pool, not about the language. Open
-EB-NeRD's window to its whole catalogue and BM25 wins there too; shrink MIND's to a day
-and embeddings win. At matched pool sizes the two datasets agree.
-
-![Recall@K per method, EB-NeRD vs MIND](reports/figures/fig4_recall_comparison.png)
-*Small-variant sweep (same finding as the large-variant table above): content wins on
-EB-NeRD, freshness wins on MIND.*
-
-### Ranking — official metrics inside each impression's real candidate list (large, test)
-
-95% CIs from bootstrap over impressions; `random` is the calibration check.
-
-| ranker | EB-NeRD AUC | nDCG@10 | ILD@10 | cov@10 | MIND AUC | nDCG@10 | ILD@10 | cov@10 |
-|---|---|---|---|---|---|---|---|---|
-| random | 0.4999 | 0.4298 | 0.772 | 0.910 | 0.4992 | 0.2859 | 0.945 | 0.684 |
-| pop_prior | 0.4274 | 0.3804 | 0.756 | 0.881 | 0.5450 | 0.3132 | 0.918 | 0.344 |
-| ctr_prior | 0.4244 | 0.3795 | 0.755 | 0.931 | 0.6044 | 0.3546 | 0.963 | 0.333 |
-| recency | 0.5009 | 0.4208 | 0.778 | 0.836 | 0.5140 | 0.2957 | 0.939 | 0.584 |
-| bm25 | 0.5275 | 0.4520 | 0.762 | 0.897 | 0.5751 | 0.3535 | 0.895 | 0.682 |
-| emb | **0.5462** | **0.4666** | 0.673 | 0.891 | **0.6360** | **0.3935** | 0.829 | 0.660 |
-| hybrid_rrf | 0.5456 | 0.4636 | 0.707 | 0.894 | 0.6259 | 0.3851 | 0.853 | 0.679 |
-| *pop_oracle** | *0.6547* | *0.5331* | *0.774* | *0.821* | *0.5934* | *0.3700* | *0.920* | *0.236* |
-
-`pop_oracle*` (Q9 anti-gaming control): same ranker, but counting clicks from inside the
-scored split — +47% AUC on EB-NeRD, +12% on MIND. Structurally blocked by
-`tests/test_no_leakage.py`.
-
-The beyond-accuracy columns cut against the accuracy ones. The embedding ranker has the
-lowest intra-list diversity on both datasets — it is accurate because it is narrow. Prior
-popularity is the opposite failure: on MIND it reaches 34% of the catalogue and scores
-0.430 on head impressions against 0.240 on tail ones. Whatever ships needs a diversity
-constraint that no accuracy metric will ask for.
+The same feature change on the shipped GBDT is worth far more — **+0.0509**
+[+0.0501, +0.0517] on EB-NeRD and **+0.0538** [+0.0522, +0.0557] on MIND — which is
+why the headline claim rests there. Architecture and feature axes are reported
+separately; conflating them is what Q3.3 forbids.
 
 ---
 
@@ -91,76 +74,38 @@ constraint that no accuracy metric will ask for.
 
 | decision | alternative | why, measured |
 |---|---|---|
-| polars, lazy + streaming | pandas (the starter notebooks) | EB-NeRD large is 13.5M test impressions / 206M candidate slots; the pandas path does not survive it on one box |
-| BM25 over a polars postings table → scipy CSR; query = whole history as one sparse row | per-query loop over an inverted index | all 73,152 MIND queries are one matrix product `H·TF`; stemming runs once per distinct token, not per occurrence |
-| exact `IndexFlatIP` at the operating point | HNSW everywhere | crossover measured at N≈8,000 — below it a graph walk costs more than the matmul it replaces |
-| candidate universe = 7-day live window anchored at split start | whole catalogue; window anchored at split end | EB-NeRD carries articles from 1993; anchoring at the end excludes everything already popular when the week began, and scored popularity at exactly 0.0000 |
-| drop already-read articles from the retrieved list | keep them | BM25's top hit was frequently an article from the user's own history; excluding them lifts EB-NeRD recall@50 by +38% |
-| title + abstract as the indexed text | + body (EB-NeRD only) | adding the body costs −9% recall for 11× the postings |
-| official MRR (mean 1/rank over every click) | reciprocal rank of the first click | tested against the graders' `ebrec` code; MIND is 28.8% multi-click, so the first-click variant overstated it by 15% |
-| row order is part of the schema (`src_row`) | group by `impression_id` | EB-NeRD's 200,000 beyond-accuracy rows all share `impression_id = 0`; grouping collapses them and no sort recovers the order |
+| GBDT over hand-crafted features | neural ranker on the same matrix | the matrix is full of *structural* nulls — MIND has no sessions, cold users have no click times — and every imputation choice would be a confound in the ablations |
+| families split by **availability** (`shipped` / `production`) | split by usefulness | the Codabench split has no labels, so rolling *click* counters are uncomputable there while rolling *exposure* counters are not; the split means the submitted model needs no surgery |
+| train stage two on the **shown** lists | on stage-one's retrieved sets | the ordering inverts between framings; retrieved-set training needs clicks unioned in, and the union *is* the label — 0.99 AUC on its own retrieved sets, **below random** in-impression |
+| `position` quarantined | used as a de-biasing feature | measured: neither dataset stores candidates in rendered order, so it carries nothing |
+| bounded freshness head (α·tanh) | unbounded additive head | unbounded wins big where freshness dominates and loses big where content does; bounded is positive on both |
+| early stopping on nDCG for **every** objective | metric follows the objective | otherwise the objective comparison changes two things at once — on MIND that showed as 148 trees against 13 |
+| rolling counters read strictly before the request | a fixed per-split window | every fixed window is either stale by the end of the split or leaky at its start; an as-of join with `allow_exact_matches=False` is neither |
+| retrieval per **user**, not per impression | per impression | the query is the click history, and EB-NeRD's test split has 244,647 impressions over 15,342 users |
 
 ---
 
 ## 3. Ablations
 
-### 3a. Retrieval and ranking knobs (Q2–Q4)
+| ablation | swept over | headline |
+|---|---|---|
+| feature family, leave-one-out | user / article / match / context | `−article` **−0.1453** AUC; `−match` −0.0279; `−context` −0.0145; `−user` −0.0015 — all CIs exclude zero |
+| the improvement | frozen prior vs rolling | **+0.0509** (EB-NeRD) / **+0.0538** (MIND); dead slots 84.2% → 3.7% and 54.9% → 3.7% |
+| serving-unavailable features (Q9) | dwell, scroll, rendered position | **+0.0002, CI spans zero** — worth nothing measurable |
+| objective arc | `binary` / `rank_xendcg` / `lambdarank` | predicted ordering **holds on EB-NeRD, inverts on MIND** |
+| ↳ LambdaRank truncation | 10 / 30 / 100 / 300 | optimum tracks list length; explains ⅔ of MIND's inversion |
+| training candidate set | shown / retrieved / retrieved+union | each wins only on the framing it matches; the ordering inverts |
+| neural head form | unbounded / bounded | +0.0874 vs −0.0053 (EB-NeRD), −0.0971 vs +0.0045 (MIND) |
+| position bias | raw vs length-stratified vs article-fixed | **absent**: raw 6.4× decay is a 1/L artifact |
+| head vs tail | content vs article-log arms | content wins **both** slices — the lecture's prediction falsified, with the conditioning confound stated |
+| MIND history direction | newest-last / newest-first | unknowable from the data; worth 0.5% AUC, so priced rather than guessed |
 
-| knob | swept over | shipped | what sweeping it was worth |
-|---|---|---|---|
-| BM25 (k₁, b) | 4×4 grid + BM25L | k₁=2.0, b per corpus | b: **+70%** recall@100 on MIND, 2.3% total spread on EB-NeRD; the optimum **reverses** between small and large |
-| ANN index | flat, HNSW (M, efC, efS), IVF, SQ8, PQ | exact `IndexFlatIP` | exact below N≈8K; HNSW **9.4×** faster at 125K for 96.5% fidelity |
-| history window | n_recent ∈ {5…100, all} × decay | all, no decay | +23% (EB-NeRD BM25) vs the 30-click window it replaced |
-| similarity cutoff | global τ, per-user α·best | none (fixed top-200) | +11% / +12% at matched budget — measured, not adopted |
-| stored features | 10 user/article features | embeddings + category_match | +5.9% AUC (EB-NeRD), +0.4% (MIND) |
-| query-term saturation k₃ | {∞, 1000, 32, 8, 2, 0} | ∞ (none) | binarising the query costs −56% (EB-NeRD) |
-| tokeniser | stop × stem × field | stop + stem | stopwords −10% / −26% recall if kept |
-| user representation | 1 vector vs k chunks / k-means | 1 mean-pooled vector | +3.8% (k=2) — not adopted, gain inside the noise of its cost |
-| augmented history | shipped vs augmented | shipped | <0.31% nDCG@10 either way; worth having because it came back negative |
-
-![ANN scale sweep on EB-NeRD/large: throughput, build cost, fidelity](reports/figures/fig7_ann_scale_ebnerd_large_contrastive.png)
-*(a) exact search beats HNSW below N≈8,000 on raw throughput; (b) HNSW's build cost is
-the same order as brute force up to 100K articles; (c) HNSW trades ~2 points of recall@100
-for that speed once it does win.*
-
-### 3b. Systems ablations
-
-Each of these tests a claim from the systems literature, against this corpus, on the engineering
-metric the claim is about. Full write-ups in `reports/l*/l*_ablation.md`.
-
-| subsystem | shipped | alternatives measured | engineering metric | verdict |
-|---|---|---|---|---|
-| service demand | one process, 48 leaf threads | 1 → 48 servers | `D_total` = 9.19 ms, bottleneck `ann_search` (8.96 ms) | 110 → **467 q/s** (4.23×); the serial-throughput prediction lands within 1.5% and Little's law within 1.3% |
-| queueing model | — | M/M/1 vs M/D/1 vs measured | service CV = 0.01 | **M/D/1**, not M/M/1 — M/M/1 over-predicts wait 1.9× |
-| tail latency | no hedging | hedged requests, per-leaf budgets | p99 under load | **−86%** on an idiosyncratic tail, **+204%** on a shared one — a retry storm, not a fix |
-| shard skew | doc-ranged shards | micro-sharding n ∈ {16,64,128} | biggest-shard share, p50 | **made it worse**: 29.6%→18.4% share but p50 5.51→8.50 ms |
-| index updates | wholesale rebuild | append-in-place, LSM segments | seconds/week at equal bytes and recall | rebuild 301.6 s, **append 8.8 s**, segments 41.0 s → **switch to append** |
-| storage layout | vectors in RAM | cold NVMe, random vs sequential | MB/s at fixed volume | cold 1,477 MB/s vs warm 5,934; random penalty up to **93×** |
-| compression | uncompressed parquet | snappy, lz4, zstd | cold read time | zstd **2.7× smaller, 1.7× slower** — decode, not fetch, is the bottleneck |
-| near-duplicates | none | SHA-256, shingling, MinHash+LSH | share of catalogue, recall@100 | **2.2%** of articles, **0.076%** of clicks → +0.0003 recall. Ship the SHA-256 pass (0.12 s) and nothing else |
-| Zipf / Heaps | assumed | fit both, predict held-out | slope, vocabulary error | slope −1.07 ✓; Heaps as a **predictor** overshoots vocabulary by **+53.6%** |
-| seen-set | exact hash set | Bloom at 4–16 bits/key | bytes, recall@100 | 16 b/key: **0.25× bytes for −0.00002 recall** → ships when users grow |
-| frequency sketch | — | Count-Min vs Count-Sketch | mean abs error on a Zipf stream | **Count-Sketch wins 2.9×** — the slide's ordering inverts under skew |
-| field weighting | title ×1 (concatenated) | title ×1/2/3/5 | recall@200 | ×5 → **−3.7%** — monotonically worse for a history-bag query |
-| query processing | one sparse matmul | TAAT, DAAT, DAAT+WAND | postings touched, multiply-adds, ms | WAND is rank-safe and prunes **0%→66%** with query length, but does half the arithmetic and cannot beat BLAS at 2,063 docs |
-| ↳ at scale | — | 7 d → whole catalogue (61×) | WAND's share of matmul work | 2.1× → **6.6×** — the crossover is at ~5× this catalogue, i.e. the query path breaks at 10× the **universe**, not 10× the users |
-| posting codes | raw uint32 | v-byte, bit-packed, Elias-γ, Roaring | bits/gap, decode GB/s | all **40–100% worse** than the slide's table (median gap 129); break-even needs a **2.5 GB/s** decoder, numpy gives 0.09 |
-| index build | single-pass in RAM | SPIMI, 20k / 5k-doc blocks | peak RSS delta | **869.6 MB → 0.8 MB** for 1.3× the time → switch to SPIMI |
-| candidate tier | full universe | 5–50% popularity tier | recall@100, docs scored | 5% tier: **+222%** recall@100 (0.0869 → 0.2799) scoring **20× fewer** docs — cheaper *and* better |
-| skip lists / term order | — | √L skips; ascending vs descending df | merge steps | **10.9×** mean speedup; cheapest-first saves **87%** of steps |
-
-Eight measurement bugs were caught in the harness before they became results — a cold read
-served warm by a live memmap, a hedge that never cancelled its twin, a MinHash whose *k*
-permutations were all the same permutation, a timer that included its own setup. A result
-is only as good as the rig that produced it.
-
-### 3c. What changed in the code because of the above
-
-1. **Append to the ANN index instead of rebuilding it** — 30× cheaper per week, same bytes, same recall.
-2. **Build the inverted index with SPIMI** — removes a linear-in-corpus memory failure mode for 1.3× the time.
-3. **Add a 5% popularity tier** to the candidate universe — not a quality trade, a quality win.
-4. **Bloom-filter the seen-set** at 10–16 bits/key once the user count grows.
-5. **Keep** the matmul, weight-1 fields, no positions, no compression and no dedup pass — each of those is now a number rather than a habit.
+Bugs the harness caught before they became results: an expanding mean that used row
+order as a tiebreak on second-resolution timestamps; a user lookup that clipped an
+out-of-range id onto a real, different user; a stage-1 recall that computed to exactly
+1.0 once the union was off; a cascade scored on the contaminated set it was meant to
+expose; an out-of-bounds gather that surfaced as an unrelated cuBLAS error; and a
+`push --delete` that overwrote fresh remote results with stale local ones.
 
 ---
 
@@ -168,137 +113,100 @@ is only as good as the rig that produced it.
 
 | what breaks | why | the fix |
 |---|---|---|
-| the id-remap join | explode → join → group_by hit 120 GB on EB-NeRD large; 200k beyond-accuracy rows share `impression_id = 0` | in-place `list.eval(replace_strict)`, peak RSS 8.9 GB |
-| feature freshness | popularity is frozen at the split boundary on a corpus whose median clicked article is 80 h younger | rolling in-window update with a strictly causal cutoff — real work, not a parameter |
-| exact search | crossover at N≈8K; the 125K corpus already wants HNSW | HNSW; the 42 s single-threaded build becomes the new bottleneck |
-| the BM25 matmul | `H·TF` stops fitting at 10× users × 10× vocabulary | blocked product, or WAND once the universe (not the user count) grows ~5× |
-| index build memory | single-pass in RAM is linear in the corpus | SPIMI (measured: 1000× less peak RSS) |
-| single node | one box, one GPU; no replication | the one L2 item a single machine cannot measure, stated as a gap rather than estimated |
+| the frozen feature store | 84.2% of EB-NeRD candidate slots already carry a zero prior click count, and that grows with churn | the rolling counters, served from a streaming aggregate rather than a batch job |
+| exact ANN search | A1 measured the flat/HNSW crossover at N≈8,000 | HNSW — 9.4× at 125K articles for 96.5% fidelity; its 42 s build becomes the bottleneck |
+| the BM25 matmul | `H·TF` stops fitting at 10× users × 10× vocabulary | blocked product, or WAND once the *universe* grows ~5× |
+| the re-rank feature join | peak RSS is linear in rows; the cascade build OOMed at K=200 over 200k impressions | chunked scoring — what makes the 205,925,868-slot EB-NeRD submission possible |
+| thread oversubscription | LightGBM and polars each take every core; measured at load 77 on 48 cores, an ablation that takes 139 s had not finished in 59 minutes | explicit caps — 25× faster at 12 threads |
+| single node | one box, no replication | the one item a single machine cannot measure, stated as a gap |
 
 ---
 
 ## 5. Reproducing
 
 ```bash
-uv sync                      # environment
-make ebnerd mind-small       # download + normalise the bundles
-make reproduce               # raw files -> every number, table and figure
+uv sync                                  # environment
+bash scripts/run_overnight.sh            # Q3 -> Q9 at dev scale, every report
 ```
 
-`make reproduce` is `data → test → q2 → q3 → ann → q4 → q4-ablation → baseline → figures
-→ note`, at dev scale. `bash scripts/run_large.sh` runs the identical pipeline at Codabench
-scale; every step is logged and isolated, so one failure does not abandon the rest. The
-systems ablations are deliberately not in `reproduce` — they need the large bundle to mean
-anything, and run as `make l2` / `l3` / `l4` / `l5`.
+`run_overnight.sh` is the one-command path: one step per line, each logged and
+isolated so a single failure does not abandon the rest, with thread caps and
+unbuffered output. The latency benchmark is serialised by construction and
+**refuses to run on a loaded box** — a p99 taken under contention measures the
+contention, and nothing in the output would say so.
 
 | target | question | writes |
 |---|---|---|
-| `make data` / `data-large` | Q1 | `data/processed/<ds>/<variant>/` feature store |
-| `make test` | Q1, Q9 | behaviour-window, leakage and submission-format assertions |
-| `make q2` | Q2 | `reports/q2/` — BM25 + the (k₁, b) grid |
-| `make q3` | Q3 | `reports/q3/` — semantic retrieval, worked examples |
-| `make ann` | Q3 | `reports/q3/ann_*.json` + `ann_ablation.md` |
-| `make threshold` / `userrep` / `features` / `multi` | Q3, Q4 | the knob sweeps in §3a |
-| `make q4` / `q4-ablation` | Q4, Q9 | `reports/q4/` + `q4_results.md` |
-| `make baseline` | Q5 | `reports/sub/*.zip` for both leaderboards |
-| `make l2` … `make l5` | systems ablations | `reports/l*/` + one `*_ablation.md` each |
-| `make figures` | Q2–Q4 | `reports/figures/` |
-| `make note` | Q6 | `reports/design_note.{html,pdf}`, asserting the 4-page limit |
-| `make ai-log` | Q7 | `reports/ai_usage_log.md` |
+| `scripts/q1_position.py` / `q1_coverage.py` / `q1_report.py` | Q1 | `reports/q1/` |
+| `scripts/q2_rerank.py` | Q2 | `reports/q2/rerank_*.json` |
+| `scripts/q2_twostage.py` | Q2 | cascade + training-set comparison |
+| `scripts/q2_objective.py` | Q2 | the objective arc, paired CIs |
+| `scripts/q3_nrms.py` | Q3.1–3.4 | NRMS, the improvement, paired CI |
+| `scripts/q3_ablation.py` | Q3.3, Q9 | family LOO, rolling, grey |
+| `scripts/q4_serving.py` | Q4 | memory, p99, cost/QPS |
+| `scripts/q5_eval.py` | Q5 | all metrics, both slices, CIs |
+| `scripts/q5_submit.py` | Q5, Q7.1 | leaderboard files, in raw row order |
+| `scripts/a2_design_note.py` | Q6 | 6-page PDF, page count asserted |
+| `pytest tests/` | Q1.4, Q9 | 150 passed, 10 skipped |
 
-Data, the virtualenv and both package caches are reached through symlinks and never live
-in the repo; `DATA_ROOT=/some/path make ebnerd` overrides the location.
+Data, the virtualenv and both caches are reached through symlinks and never live in
+the repo. `scripts/sync.sh` mirrors the tree to the box that holds the 92 GB of data
+and the GPU; results are produced there and pulled back.
 
 ---
 
 ## 6. Layout
 
 ```
-src/newsrec/          the pipeline
-  config, schema      canonical article/impression/history schema; per-dataset configs
-  ingest_ebnerd/mind  raw -> unified parquet
-  ids, build, store   dense id spaces, stage-cached build, feature store
-  features            user recency/activity, article CTR and decayed clicks
-  lexical, retrieval  BM25 over a polars postings table -> scipy CSR
-  semantic, embeddings FAISS + article vectors
-  evaluate, baselines the metric harness and the reference rankers
-  submit              leaderboard files, in raw row order
-scripts/              one entry point per question, plus the l2-l5 ablation harnesses
-tests/                leakage, row order, official metrics, submission format
-configs/              one YAML per dataset variant
-reports/              JSON results, generated markdown, figures, design note
+src/newsrec/
+  behaviour.py    Q1 design matrix: session position, dwell, freshness,
+                  rolling counters, category match — all strictly prior
+  bias.py         position-bias estimation, with the list-length confound removed
+  rerank.py       LightGBM/LambdaMART over the five feature families
+  twostage.py     stage-one retrieval and the cascade's candidate sets
+  nrms.py         NRMS-docvec in PyTorch, plus the bounded freshness head
+  evaluate.py     A1's metric harness + paired bootstrap (Q3.4)
+  ...             config, schema, ingest, lexical, semantic, store, submit (A1)
+scripts/          one entry point per question, plus run_overnight.sh
+tests/            leakage, behaviour window, row order, official metrics, format
+reports/          result JSONs, generated markdown, design note
 ```
 
 ### Deliverables map
 
 | assignment item | where |
 |---|---|
-| Q1 pipeline | `src/newsrec/{config,schema,ingest_*,ids,build,features,store}.py` |
-| Q2 BM25 | `src/newsrec/lexical.py`, `scripts/q2_bm25.py` |
-| Q3 semantic + ANN ablation | `src/newsrec/semantic.py`, `scripts/q3_{semantic,ann}.py` |
-| Q4 harness | `src/newsrec/evaluate.py`, `scripts/q4_eval.py` |
-| Q5 submissions | `src/newsrec/submit.py` → `reports/sub/` (gitignored; `make baseline`) |
-| Q6 design note | `reports/design_note.pdf` |
+| Q1 features | `src/newsrec/behaviour.py`, `bias.py` → `reports/q1/q1_features.md` |
+| Q2 re-ranker | `src/newsrec/rerank.py`, `twostage.py` → `reports/q2/q2_reranker.md` |
+| Q3 baseline + improvement | `src/newsrec/nrms.py`, `scripts/q3_*.py` → `reports/q3/q3_baseline.md` |
+| Q4 serving & scale | `scripts/q4_serving.py` → `reports/q4/q4_serving.md` |
+| Q5 evaluation | `scripts/q5_eval.py` → `reports/q5/q5_evaluation.md` |
+| Q5 submissions | `scripts/q5_submit.py` → `reports/sub/*.zip` |
+| Q6 design note | `reports/a2_design_note.pdf` |
 | Q7.3 leaderboard screenshots | `reports/leaderboard/` |
 | Q7.4 AI usage log | `reports/ai_usage_log.md` |
-| Q9 leakage tests | `tests/test_no_leakage.py` |
+| Q9 leakage test | `tests/test_behaviour_window.py` |
+
+> `reports/q3/` and `reports/q4/` also hold **A1** artefacts (`q3_*.json`,
+> `ann_ablation.md`, `q4_results.md`), kept because A2 reads A1's tuned BM25
+> parameters from them. A2's own outputs are `nrms_*`, `ablation_*`, `serving_*`,
+> `q3_baseline.md` and `q4_serving.md`.
 
 ---
 
-## 7. Pipeline conventions worth knowing
+## 7. Conventions worth knowing
 
-**Temporal split.** The last editorial day of each official *train* week becomes `val`; the
-official validation split becomes a labelled, fully held-out `test`; the official test set
-stays the unlabelled `submit` split. Strictly increasing, and the official splits keep
-their published meaning.
+**Availability decides what ships.** Not usefulness. The submit split has no labels,
+so any feature derived from in-split clicks is unavailable there however much it helps
+offline.
 
-| | train | val | test | submit |
-|---|---|---|---|---|
-| EB-NeRD | 05-18 07:00 → 05-24 07:00 | 05-24 → 05-25 07:00 | 05-25 → 06-01 | 06-01 → 06-08 |
-| MIND | 11-09 → 11-14 | 11-14 | 11-15 | 11-16 → 11-22 |
+**A claim needs a control.** The probe that dated history items by article first-seen
+time read 0.16 on EB-NeRD, where the answer was independently known to be ascending.
+Running the known-answer control is the only reason that probe was not published.
 
-EB-NeRD's editorial day runs 07:00→07:00, so one day spans two calendar dates — and no
-session straddles the cut, because that boundary *is* the day break. MIND's raw timestamps
-are `%m/%d/%Y %I:%M:%S %p`, which sort wrong as strings.
+**Paired, not independent, CIs.** Two separate intervals over the same impressions
+overstate the uncertainty of their difference; the impression-to-impression variance is
+common to both systems and cancels only when the resample is shared.
 
-**Stage caching knows about code.** A stage is reused only when the config hash, the hash of
-the build-relevant modules and the raw-input inventory all match the manifest. Hashing the
-config alone meant editing `features.py` and silently keeping the old logic.
-
-**Leakage rules the tests enforce.** Splits strictly ordered with no boundary overlap; every
-derived feature's `computed_through` stamp earlier than the split it describes; exposure
-counts equal to the totals of splits that end before it; `article_stats` carrying no
-cross-split counts; `next_read_time` / `next_scroll_percentage` never entering the store;
-augmented history appending only pre-cutoff clicks without deduplicating what shipped.
-
-**Missing columns stay null.** MIND has no publication date (`first_seen_time` is derived
-from its earliest impression) and no history timestamps; EB-NeRD has no Wikidata entities.
-Nothing is faked to make the two datasets look alike.
-
-**`read_time` and `scroll_percentage` are a deliberate grey zone.** Both ship fully populated
-in the unlabelled test sets, so the leaderboards permit them, but they describe a visit still
-in progress at prediction time. They are stored, flagged, and excluded from every ranker here.
-
-## 8. Data
-
-| bundle | articles | impressions |
-|---|---|---|
-| `ebnerd_demo` | 11,777 | 24,724 train / 25,356 val |
-| `ebnerd_small` | 20,738 | 232,887 / 244,647 |
-| `ebnerd_large` | 125,541 | 12,063,890 / 12,566,385 |
-| `ebnerd_testset` | 125,541 | 13,536,710 unlabelled |
-| `MINDsmall_{train,dev}` | 51,282 / 42,416 | 156,965 / 73,152 |
-| `MINDlarge_{train,dev,test}` | 101,527 / 72,023 / 120,961 | 2,232,748 / 376,471 / 2,370,727 |
-
-Acquisition notes, all of which cost real time:
-
-* **EB-NeRD's S3 bucket throttles a single connection to ~30 KB/s** from this network — a
-  plain `wget` of the 6 GB of bundles needed ~30 h. `scripts/par_download.py` fans out over
-  24 HTTP Range connections with per-chunk checkpointing, reaching 0.5–1.3 MB/s and resuming
-  after a drop.
-* `articles_large_only.zip` is at the **bucket root**, not under `artifacts/` as the
-  assignment PDF says (that path 404s).
-* **MIND is HuggingFace-gated**, and a token is not sufficient — the terms must be accepted
-  once on the dataset page, or every resolve returns `403 GatedRepo`.
-* Several archives unpack into a doubled directory and carry macOS `__MACOSX` cruft;
-  `make normalize` (run automatically by both fetch scripts) flattens and cleans them.
+**Effect size next to significance.** With 244,647 and 73,152 test impressions,
+thousandths of a point clear significance. That is a statement about sample size.
