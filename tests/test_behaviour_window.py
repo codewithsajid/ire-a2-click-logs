@@ -276,3 +276,33 @@ def test_prior_dwell_is_not_the_current_dwell(store):
         pytest.skip("too few rows with both values")
     r = np.corrcoef(both["read_time"].to_numpy(), both["prior_read_time"].to_numpy())[0, 1]
     assert abs(r) < 0.9, f"prior dwell correlates {r:.3f} with the current visit"
+
+
+def test_unknown_users_are_not_aliased_onto_someone_else(store):
+    """A user missing from the history table must score as unknown, not as
+    whoever happens to sit in the last row of the lookup array.
+
+    The natural way to write the user_idx -> history-row map is a dense array
+    sized by the largest id in the history table, indexed with a clip. The clip
+    is the bug: an id past the end lands on the final slot, which belongs to a
+    real user, and the pair is then scored with that stranger's query vector.
+    """
+    from newsrec.rerank import add_matching_features
+    from newsrec.behaviour import pairs as build_pairs
+
+    p = build_pairs(store, "train", max_impressions=300, seed=0)
+    # forge a user id beyond anything the history table knows about
+    hmax = int(store.history("train").select(pl.col("user_idx").max()).collect().item())
+    forged = p.with_columns(
+        pl.when(pl.int_range(pl.len()) < 50)
+        .then(pl.lit(hmax + 10_000, dtype=pl.UInt32))
+        .otherwise(pl.col("user_idx")).alias("user_idx"))
+
+    emb = "contrastive" if store.dataset == "ebnerd" else "sentence-transformers/all-MiniLM-L6-v2"
+    out = add_matching_features(store, "train", forged, emb, 2.0, 1.0)
+    ghost = out.head(50)
+    for col in ("bm25", "emb_cos", "emb_max", "emb_recent"):
+        v = ghost[col].to_numpy()
+        assert np.allclose(v, 0.0), (
+            f"{col} is non-zero for a user with no history -- the lookup aliased "
+            f"them onto another user")

@@ -189,6 +189,53 @@ def section_impact(rr: dict) -> list[str]:
     return out
 
 
+def section_verified(ver: dict, rr: dict) -> list[str]:
+    """What was checked against the raw bundles, and what could not be."""
+    if not ver:
+        return []
+    raw = ver.get("mind_raw_fields", {})
+    eb = ver.get("ebnerd_history_order", {})
+    st = ver.get("store_history_timestamps", {})
+    order = ver.get("mind_history_order", {})
+    out = ["## 6. Assumptions, checked against the raw bundles", "",
+           "`scripts/verify_history.py`. Two of the three claims the recency",
+           "features rest on are confirmed; the third cannot be.", "",
+           "**MIND ships no history timestamps -- confirmed.** `behaviors.tsv` has",
+           f"{raw.get('n_fields')} fields and the fourth is a bare id list",
+           f"(`{raw.get('history_sample', '')[:44]}...`), containing no time",
+           "characters at all. In the built store MIND holds",
+           f"{st.get('mind', {}).get('n_ts', 0):,} timestamps against",
+           f"{st.get('mind', {}).get('n_art', 0):,} history articles; EB-NeRD holds",
+           f"{st.get('ebnerd', {}).get('n_ts', 0):,} against",
+           f"{st.get('ebnerd', {}).get('n_art', 0):,} -- exactly one each.", "",
+           "**EB-NeRD's history is ascending -- confirmed.** "
+           f"{eb.get('ascending', 0):,} of {eb.get('n_checked', 0):,} users are",
+           "strictly ascending in time, none descending. So its decay is a real",
+           "half-life in hours.", "",
+           "**Which end of MIND's list is recent -- unknowable from the data.**",
+           "MIND's history is a fixed per-user snapshot: it never varies within a",
+           "bundle (0 of 698,365 users in MINDlarge_train have more than one",
+           "distinct history) and is byte-identical between train and dev (210,990",
+           "of 210,990 users at large scale). There is no second observation to",
+           "difference against, so the direction is an assumption, not a fact.",
+           "",
+           "An unverifiable assumption can still be priced, by training both ways:", ""]
+    a = rr.get(("mind", "shipped")); b = rr.get(("mind", "revhist"))
+    if a and b:
+        out += ["| MIND history direction | AUC | MRR | nDCG@10 |", "|---|---|---|---|"]
+        for lbl, j in (("newest-last (shipped)", a), ("newest-first (reversed)", b)):
+            r = j["results"]["rerank"]
+            out.append(f"| {lbl} | {fmt(r['auc'])} | {fmt(r['mrr'])} | {fmt(r['ndcg@10'])} |")
+        d = b["results"]["rerank"]["auc"] - a["results"]["rerank"]["auc"]
+        out += ["", f"The direction is worth {abs(d):.4f} AUC ({abs(d) / a['results']['rerank']['auc']:.1%}), "
+                    "marginally in favour of",
+                "the unshipped orientation. It is small because the rank decay uses a",
+                "half-life of 10 against a median MIND history of 11, so the weights",
+                "span only 1.0 to 0.5 -- the assumption is cheap precisely because",
+                "the feature it feeds is nearly flat. Reported rather than resolved.", ""]
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", default="small")
@@ -201,7 +248,7 @@ def main() -> None:
     cov = {d: load(q1 / f"coverage_{d}_{a.variant}.json") for d in DATASETS}
     rr = {}
     for d in DATASETS:
-        for tag in ("shipped", "production"):
+        for tag in ("shipped", "production", "revhist"):
             j = load(Path("reports/q2") / f"rerank_{d}_{a.variant}_{tag}.json")
             if j:
                 rr[(d, tag)] = j
@@ -224,6 +271,7 @@ def main() -> None:
     doc += section_position(pos)
     doc += section_boundary(tests)
     doc += section_impact(rr)
+    doc += section_verified(load(q1 / "verify_history.json"), rr)
 
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text("\n".join(doc))

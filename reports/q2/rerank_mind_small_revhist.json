@@ -1,0 +1,391 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+  "objective": "lambdarank",
+  "families": [
+    "user",
+    "article",
+    "match",
+    "context"
+  ],
+  "history_order": "newest-first",
+  "n_features": 29,
+  "features": [
+    "n_hist",
+    "clicks_24h",
+    "clicks_7d",
+    "hours_since_last_click",
+    "top_category_share",
+    "n_categories",
+    "category_entropy",
+    "prior_read_time",
+    "prior_scroll",
+    "prior_impressions",
+    "ctr_smoothed",
+    "clicks_decayed",
+    "prior_clicks",
+    "prior_inview",
+    "age_hours",
+    "roll_inview",
+    "roll_age_hours",
+    "bm25",
+    "emb_cos",
+    "emb_max",
+    "emb_recent",
+    "cat_share",
+    "cat_clicks",
+    "cat_recency",
+    "cat_recency_share",
+    "session_rank",
+    "session_seconds",
+    "secs_since_prev",
+    "n_candidates"
+  ],
+  "bm25": {
+    "k1": 2.0,
+    "b": 1.0
+  },
+  "n_train_rows": 4621015,
+  "n_test_rows": 2740998,
+  "n_test_impressions": 73152,
+  "best_iteration": 39,
+  "fit_seconds": 13.2,
+  "score_seconds": 0.2,
+  "results": {
+    "emb": {
+      "n_impressions": 73152,
+      "auc": 0.63678,
+      "auc_ci95": [
+        0.63471,
+        0.63879
+      ],
+      "mrr": 0.30628,
+      "mrr_ci95": [
+        0.30404,
+        0.30834
+      ],
+      "mrr_first": 0.35126,
+      "mrr_first_ci95": [
+        0.34861,
+        0.35338
+      ],
+      "ndcg@5": 0.33436,
+      "ndcg@5_ci95": [
+        0.33169,
+        0.33664
+      ],
+      "ndcg@10": 0.39379,
+      "ndcg@10_ci95": [
+        0.39144,
+        0.39616
+      ]
+    },
+    "bm25": {
+      "n_impressions": 73152,
+      "auc": 0.57441,
+      "auc_ci95": [
+        0.57221,
+        0.57644
+      ],
+      "mrr": 0.27406,
+      "mrr_ci95": [
+        0.27176,
+        0.27599
+      ],
+      "mrr_first": 0.3165,
+      "mrr_first_ci95": [
+        0.31399,
+        0.31863
+      ],
+      "ndcg@5": 0.29241,
+      "ndcg@5_ci95": [
+        0.28973,
+        0.29466
+      ],
+      "ndcg@10": 0.35361,
+      "ndcg@10_ci95": [
+        0.35112,
+        0.35586
+      ]
+    },
+    "pop_prior": {
+      "n_impressions": 73152,
+      "auc": 0.53312,
+      "auc_ci95": [
+        0.53125,
+        0.53479
+      ],
+      "mrr": 0.23746,
+      "mrr_ci95": [
+        0.23538,
+        0.23928
+      ],
+      "mrr_first": 0.26672,
+      "mrr_first_ci95": [
+        0.26451,
+        0.2686
+      ],
+      "ndcg@5": 0.24659,
+      "ndcg@5_ci95": [
+        0.24397,
+        0.24868
+      ],
+      "ndcg@10": 0.3107,
+      "ndcg@10_ci95": [
+        0.30839,
+        0.31275
+      ]
+    },
+    "ctr_prior": {
+      "n_impressions": 73152,
+      "auc": 0.55817,
+      "auc_ci95": [
+        0.55603,
+        0.56014
+      ],
+      "mrr": 0.25638,
+      "mrr_ci95": [
+        0.25415,
+        0.25832
+      ],
+      "mrr_first": 0.29388,
+      "mrr_first_ci95": [
+        0.29161,
+        0.29599
+      ],
+      "ndcg@5": 0.27305,
+      "ndcg@5_ci95": [
+        0.27038,
+        0.27523
+      ],
+      "ndcg@10": 0.33312,
+      "ndcg@10_ci95": [
+        0.33063,
+        0.33533
+      ]
+    },
+    "rerank": {
+      "n_impressions": 73152,
+      "auc": 0.64834,
+      "auc_ci95": [
+        0.64625,
+        0.65038
+      ],
+      "mrr": 0.31381,
+      "mrr_ci95": [
+        0.31154,
+        0.31587
+      ],
+      "mrr_first": 0.36189,
+      "mrr_first_ci95": [
+        0.3592,
+        0.36409
+      ],
+      "ndcg@5": 0.34489,
+      "ndcg@5_ci95": [
+        0.34223,
+        0.34716
+      ],
+      "ndcg@10": 0.40487,
+      "ndcg@10_ci95": [
+        0.40247,
+        0.40723
+      ]
+    }
+  },
+  "importances": [
+    {
+      "feature": "emb_cos",
+      "family": "match",
+      "gain": 109437.62845993042,
+      "share": 0.2896641048587223
+    },
+    {
+      "feature": "emb_max",
+      "family": "match",
+      "gain": 48442.97196960449,
+      "share": 0.12822088992370131
+    },
+    {
+      "feature": "age_hours",
+      "family": "article",
+      "gain": 31955.718097686768,
+      "share": 0.08458173489453186
+    },
+    {
+      "feature": "n_hist",
+      "family": "user",
+      "gain": 30805.854234695435,
+      "share": 0.08153822699628889
+    },
+    {
+      "feature": "n_candidates",
+      "family": "context",
+      "gain": 30188.74224090576,
+      "share": 0.07990482908924162
+    },
+    {
+      "feature": "roll_age_hours",
+      "family": "article",
+      "gain": 26676.671298980713,
+      "share": 0.0706089324227168
+    },
+    {
+      "feature": "roll_inview",
+      "family": "article",
+      "gain": 24803.28448486328,
+      "share": 0.06565037363263715
+    },
+    {
+      "feature": "emb_recent",
+      "family": "match",
+      "gain": 20649.137859344482,
+      "share": 0.05465500411790608
+    },
+    {
+      "feature": "cat_share",
+      "family": "match",
+      "gain": 18365.739097595215,
+      "share": 0.04861120850879537
+    },
+    {
+      "feature": "bm25",
+      "family": "match",
+      "gain": 14417.182991027832,
+      "share": 0.03816000460216048
+    },
+    {
+      "feature": "cat_recency_share",
+      "family": "match",
+      "gain": 8020.666606903076,
+      "share": 0.021229436764608617
+    },
+    {
+      "feature": "category_entropy",
+      "family": "user",
+      "gain": 4178.380187988281,
+      "share": 0.011059511924239068
+    },
+    {
+      "feature": "cat_recency",
+      "family": "match",
+      "gain": 3673.222496032715,
+      "share": 0.00972243935868742
+    },
+    {
+      "feature": "top_category_share",
+      "family": "user",
+      "gain": 2457.506706237793,
+      "share": 0.00650463181872874
+    },
+    {
+      "feature": "cat_clicks",
+      "family": "match",
+      "gain": 1946.572494506836,
+      "share": 0.005152269718366403
+    },
+    {
+      "feature": "n_categories",
+      "family": "user",
+      "gain": 1789.453800201416,
+      "share": 0.0047364013686678865
+    },
+    {
+      "feature": "clicks_24h",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "clicks_7d",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "hours_since_last_click",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_read_time",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_scroll",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_impressions",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "ctr_smoothed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "clicks_decayed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_clicks",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_inview",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "session_rank",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "session_seconds",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "secs_since_prev",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    }
+  ],
+  "importance_by_family": [
+    {
+      "family": "match",
+      "share": 0.595415357852948
+    },
+    {
+      "family": "article",
+      "share": 0.22084104094988583
+    },
+    {
+      "family": "user",
+      "share": 0.10383877210792458
+    },
+    {
+      "family": "context",
+      "share": 0.07990482908924162
+    }
+  ]
+}

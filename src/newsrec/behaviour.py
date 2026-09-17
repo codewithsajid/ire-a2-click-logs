@@ -420,16 +420,26 @@ def user_category_profile(fs: FeatureStore, split: str,
 
 
 def history_recency(fs: FeatureStore, split: str, halflife_hours: float = 24.0,
-                    mode: str = "shipped") -> pl.LazyFrame:
+                    mode: str = "shipped", newest_last: bool = True) -> pl.LazyFrame:
     """Exponentially-decayed weight of each (user, previously-clicked article).
 
     Q1.1 asks for a recency-weighted history. EB-NeRD timestamps every history
-    click, so the weight is a real half-life in hours. MIND ships history as an
-    ordered list with no times at all, so there the decay runs over *rank* -- the
-    k-th most recent click -- which is the only recency information the data
-    contains. Both are exponential with the same half-life parameter; they are
-    not the same quantity and the design note says so rather than presenting one
-    number for both.
+    click -- verified: 15,143 of 15,143 users are strictly ascending, and the
+    store holds one timestamp per history article, 2,426,247 for 2,426,247 -- so
+    there the weight is a real half-life in hours.
+
+    MIND ships no history times at all. `behaviors.tsv` has five fields and the
+    fourth is a bare list of ids, so the decay can only run over *rank*. Which
+    end of that list is recent is an **assumption, not a measurement**, and the
+    data cannot settle it: MIND's history is a fixed per-user snapshot that never
+    varies within a bundle (0 of 698,365 users in MINDlarge_train have more than
+    one distinct history) and is byte-identical between train and dev (210,990 of
+    210,990 users at large scale). There is no second observation to difference
+    against.
+
+    `newest_last` names the assumption instead of burying it, and
+    `scripts/q1_order_ablation.py` measures what it is worth by training both
+    ways. An assumption that cannot be verified can still be priced.
 
     Returned per (user, article) so downstream code can ask "how recently did
     this user click something in this category / this article's neighbourhood".
@@ -459,8 +469,8 @@ def history_recency(fs: FeatureStore, split: str, halflife_hours: float = 24.0,
             h.explode("article_idx").drop_nulls("article_idx")
             .with_columns(pl.int_range(pl.len()).over("user_idx").alias("_i"))
             .with_columns(
-                ((pl.col("_i").max().over("user_idx") - pl.col("_i"))
-                 .cast(pl.Float32)).alias("_age_rank")
+                (((pl.col("_i").max().over("user_idx") - pl.col("_i")) if newest_last
+                  else pl.col("_i")).cast(pl.Float32)).alias("_age_rank")
             )
             .with_columns((0.5 ** (pl.col("_age_rank") / 10.0)).cast(pl.Float32).alias("hist_w"))
             .drop("_i", "_age_rank")
@@ -469,7 +479,7 @@ def history_recency(fs: FeatureStore, split: str, halflife_hours: float = 24.0,
 
 
 def category_recency(fs: FeatureStore, split: str, halflife_hours: float = 24.0,
-                     mode: str = "shipped") -> pl.LazyFrame:
+                     mode: str = "shipped", newest_last: bool = True) -> pl.LazyFrame:
     """Decayed click mass per (user, category) -- "how warm is this topic for them".
 
     The un-decayed version of this is `user_category_profile.cat_share`. Keeping
@@ -480,7 +490,7 @@ def category_recency(fs: FeatureStore, split: str, halflife_hours: float = 24.0,
     cats = fs.articles().with_row_index("idx").select(
         pl.col("idx").cast(pl.UInt32).alias("article_idx"), "category")
     return (
-        history_recency(fs, split, halflife_hours, mode)
+        history_recency(fs, split, halflife_hours, mode, newest_last)
         .join(cats, on="article_idx", how="inner")
         .group_by("user_idx", "category")
         .agg(pl.col("hist_w").sum().alias("cat_recency"))
@@ -521,7 +531,8 @@ def article_timing(fs: FeatureStore) -> pl.LazyFrame:
 def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
              seed: int = 0, history_mode: str = "shipped",
              halflife_hours: float = 24.0, labelled: bool = True,
-             time_cutoff: datetime | None = None) -> pl.DataFrame:
+             time_cutoff: datetime | None = None,
+             newest_last: bool = True) -> pl.DataFrame:
     """The full behavioural design matrix: one row per shown candidate.
 
     Joins, in order: the pair table, per-impression session context, the prior
@@ -600,7 +611,7 @@ def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
     prof = user_category_profile(fs, split, history_mode)
     lf = lf.join(prof, on=["user_idx", "category"], how="left")
 
-    rec = category_recency(fs, split, halflife_hours, history_mode)
+    rec = category_recency(fs, split, halflife_hours, history_mode, newest_last)
     lf = lf.join(rec, on=["user_idx", "category"], how="left")
 
     return (

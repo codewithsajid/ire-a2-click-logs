@@ -112,7 +112,8 @@ def add_matching_features(fs: FeatureStore, split: str, pairs: pl.DataFrame,
                           emb_name: str, k1: float, b: float,
                           history_mode: str = "shipped",
                           n_recent: int = N_RECENT_DEFAULT,
-                          halflife_rank: float = 10.0) -> pl.DataFrame:
+                          halflife_rank: float = 10.0,
+                          newest_last: bool = True) -> pl.DataFrame:
     """Score every (user, candidate) pair with A1's two retrievers.
 
     These are the `match` family, and they are what carries the tail: a user with
@@ -149,7 +150,15 @@ def add_matching_features(fs: FeatureStore, split: str, pairs: pl.DataFrame,
 
     pu = pairs["user_idx"].to_numpy()
     pa = pairs["article_idx"].to_numpy()
-    rows = urow[np.clip(pu, 0, len(urow) - 1)]
+    # Bounds-check rather than clip. Clipping an out-of-range user_idx lands it on
+    # the last slot of `urow`, which holds a real and entirely different user --
+    # so an unknown user would silently be scored with someone else's query vector
+    # instead of being marked unknown. No split has such a user at dev scale
+    # (measured: 0 rows on every split of both datasets), but the large variants
+    # and the unlabelled submit split carry users the history table need not cover.
+    rows = np.full(len(pu), -1, dtype=np.int64)
+    inb = pu < len(urow)
+    rows[inb] = urow[pu[inb]]
     known = rows >= 0
 
     # ---- lexical
@@ -165,7 +174,13 @@ def add_matching_features(fs: FeatureStore, split: str, pairs: pl.DataFrame,
     embn = l2_normalise(emb)
 
     uv = user_vectors(hists, embn, n_recent=n_recent)
-    uvr = user_vectors(hists, embn, n_recent=n_recent, recency_weighted=True,
+    # `user_vectors(recency_weighted=True)` decays over list position and treats
+    # the last element as the most recent. On MIND that end is an assumption the
+    # data cannot confirm (the history snapshot is identical in every bundle), so
+    # the lists are reversed here when the assumption is being tested the other
+    # way round -- rather than duplicating the decay logic.
+    rh = hists if newest_last else [h[::-1] for h in hists]
+    uvr = user_vectors(rh, embn, n_recent=n_recent, recency_weighted=True,
                        halflife=halflife_rank)
 
     cos = np.zeros(len(pairs), dtype=np.float32)

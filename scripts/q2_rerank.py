@@ -48,7 +48,7 @@ def tuned_bm25(dataset: str, variant: str, q2_dir: Path = Path("reports/q2")) ->
 
 def build_split(fs: FeatureStore, split: str, emb: str, k1: float, b: float,
                 cache: Path, max_impressions: int = 0, rebuild: bool = False,
-                history_mode: str = "shipped") -> pl.DataFrame:
+                history_mode: str = "shipped", newest_last: bool = True) -> pl.DataFrame:
     """Assemble (and cache) the design matrix for one split.
 
     Cached because every ablation in Q3 re-reads these frames and the assembly is
@@ -61,8 +61,10 @@ def build_split(fs: FeatureStore, split: str, emb: str, k1: float, b: float,
         print(f"   [{split}] {df.height:,} rows from cache {cache}")
         return df
     t0 = time.perf_counter()
-    df = assemble(fs, split, max_impressions=max_impressions, history_mode=history_mode)
-    df = add_matching_features(fs, split, df, emb, k1, b, history_mode)
+    df = assemble(fs, split, max_impressions=max_impressions, history_mode=history_mode,
+                  newest_last=newest_last)
+    df = add_matching_features(fs, split, df, emb, k1, b, history_mode,
+                               newest_last=newest_last)
     # LightGBM's ranking objectives take group *sizes*, so the frame has to be
     # grouped by impression before it is ever handed over
     df = df.sort("imp", "position")
@@ -93,6 +95,10 @@ def main() -> None:
     ap.add_argument("--max-impressions", type=int, default=0)
     ap.add_argument("--n-boot", type=int, default=500)
     ap.add_argument("--rebuild", action="store_true")
+    ap.add_argument("--history-order", default="newest-last",
+                    choices=["newest-last", "newest-first"],
+                    help="which end of the history list is the recent end. "
+                         "MIND's data cannot settle this; the flag prices it.")
     ap.add_argument("--tag", default="")
     ap.add_argument("--out", type=Path, default=Path("reports/q2"))
     a = ap.parse_args()
@@ -105,8 +111,11 @@ def main() -> None:
 
     root = Path("artifacts/features") / a.dataset / a.variant
     frames = {
-        s: build_split(fs, s, emb, k1, b, root / f"{s}.parquet",
-                       a.max_impressions if s == "train" else 0, a.rebuild)
+        s: build_split(fs, s, emb, k1, b,
+                       root / (f"{s}.parquet" if a.history_order == "newest-last"
+                               else f"{s}_revhist.parquet"),
+                       a.max_impressions if s == "train" else 0, a.rebuild,
+                       newest_last=a.history_order == "newest-last")
         for s in ("train", "val", "test")
     }
 
@@ -161,6 +170,7 @@ def main() -> None:
     out = {
         "dataset": a.dataset, "variant": a.variant, "embedding": emb,
         "objective": a.objective, "families": list(fams),
+        "history_order": a.history_order,
         "n_features": len(feats), "features": feats,
         "bm25": {"k1": k1, "b": b},
         "n_train_rows": frames["train"].height,
