@@ -547,6 +547,31 @@ def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
     """
     p = pairs(fs, split, max_impressions=max_impressions, seed=seed,
               labelled=labelled, time_cutoff=time_cutoff)
+    return attach_features(fs, split, p, history_mode=history_mode,
+                           halflife_hours=halflife_hours, labelled=labelled,
+                           time_cutoff=time_cutoff, newest_last=newest_last)
+
+
+def attach_features(fs: FeatureStore, split: str, p: pl.DataFrame, *,
+                    history_mode: str = "shipped", halflife_hours: float = 24.0,
+                    labelled: bool = True, time_cutoff: datetime | None = None,
+                    newest_last: bool = True) -> pl.DataFrame:
+    """Attach every behavioural feature to an arbitrary candidate table.
+
+    Split out of `assemble` so that the two framings of "two-stage" share one
+    feature path. `p` may be the candidates the platform showed (`pairs`) or the
+    ones stage one retrieved from the live universe (`retrieved_pairs`); the
+    features are identical either way, which is what makes the comparison between
+    the two a comparison of *candidate sets* rather than of feature code.
+
+    Required columns on `p`: imp, user_idx, time, article_idx, label. Anything
+    else it carries (src_row, position, the EB-NeRD context block) is preserved.
+
+    The rolling counters and the article-dwell as-of joins always read the
+    *impression* stream for this split, never `p`. Stage one's retrieved set is
+    not a record of what happened -- nobody was shown those articles -- so
+    counting exposures from it would invent traffic that never occurred.
+    """
     lf = p.lazy()
     src = fs.impressions(split)
     if time_cutoff is not None:
