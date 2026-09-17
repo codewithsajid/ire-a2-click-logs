@@ -1,10 +1,71 @@
-# CS4.406 IRE Assignment 1 -- EB-NeRD + MIND
+# CS4.406 IRE Assignment 2 -- Learning from click-logs on EB-NeRD + MIND
+# (A1's targets are kept below: A2 reads A1's tuned BM25 parameters and its
+#  feature store, so `make data` and `make q2` remain the way to rebuild them.)
 # Raw/derived data lives outside $HOME (home space is tight on gvlab2):
 #   data/ -> /home/resources/ire_a1_data     (override with DATA_ROOT=...)
 .PHONY: setup download ebnerd mind-small mind-large verify status kernel clean-zips \
         data data-large test bench bench-gpu baseline q2 q3 ann q4 q4-ablation figures \
         query index-ablation multi universe l2 l3 l4 l5 \
         reproduce all ai-log note threshold userrep features
+
+
+# ============================================================ Assignment 2
+.PHONY: a2 a2-features a2-q1 a2-q2 a2-q3 a2-q4 a2-q5 a2-note a2-log a2-submit a2-test
+PY2 ?= .venv/bin/python
+DS2 ?= ebnerd mind
+V2  ?= small
+# LightGBM and polars each default to every core; two concurrent steps then ask
+# for twice the machine and spend the difference on context switches.
+export OMP_NUM_THREADS ?= 12
+export POLARS_MAX_THREADS ?= 12
+export PYTHONUNBUFFERED = 1
+
+a2:                          ## A2 one-command reproduce: Q1 -> Q9 at dev scale
+	bash scripts/run_overnight.sh
+
+a2-features:                 ## Q1/Q2 design matrix + first re-ranker (both datasets)
+	@for d in $(DS2); do $(PY2) scripts/q2_rerank.py --dataset $$d --variant $(V2) --tag shipped; \
+	  $(PY2) scripts/q2_rerank.py --dataset $$d --variant $(V2) \
+	    --families user,article,match,context,rolling --tag production; done
+
+a2-q1:                       ## Q1 position bias, coverage, report
+	@for d in $(DS2); do $(PY2) scripts/q1_position.py --dataset $$d --variant $(V2); \
+	  $(PY2) scripts/q1_coverage.py --dataset $$d --variant $(V2) --splits test; done
+	$(PY2) scripts/verify_history.py
+	$(PY2) scripts/q1_report.py
+
+a2-q2:                       ## Q2 two-stage cascade + objective arc + report
+	@for d in $(DS2); do $(PY2) scripts/q2_twostage.py --dataset $$d --variant $(V2); \
+	  $(PY2) scripts/q2_objective.py --dataset $$d --variant $(V2) --truncation-sweep 10,30,100,300; done
+	$(PY2) scripts/q2_report.py
+
+a2-q3:                       ## Q3 NRMS baseline, improvement, ablation, paired CIs
+	@for d in $(DS2); do $(PY2) scripts/q3_nrms.py --dataset $$d --variant $(V2) --epochs 12 --patience 3; \
+	  $(PY2) scripts/q3_nrms.py --dataset $$d --variant $(V2) --epochs 12 --patience 3 --extra-mode add; \
+	  $(PY2) scripts/q3_ablation.py --dataset $$d --variant $(V2); done
+	$(PY2) scripts/q3_report.py
+
+a2-q4:                       ## Q4 serving + scale. REFUSES on a loaded box, by design
+	@for d in $(DS2); do $(PY2) scripts/q4_serving.py --dataset $$d --variant $(V2); done
+	$(PY2) scripts/q4_report.py
+
+a2-q5:                       ## Q5 all metrics, both slices, CIs
+	@for d in $(DS2); do $(PY2) scripts/q5_eval.py --dataset $$d --variant $(V2); done
+	$(PY2) scripts/q5_report.py
+
+a2-submit:                   ## Q5/Q7.1 leaderboard files at large scale (hours)
+	@for d in $(DS2); do $(PY2) scripts/q5_submit.py --dataset $$d --variant large; done
+
+a2-test:                     ## Q1.4/Q9 behaviour-window + A1's leakage suite
+	$(PY2) -m pytest tests/ -q
+
+a2-note:                     ## Q6 design note (6 pages, page count asserted)
+	$(PY2) scripts/a2_design_note.py
+
+a2-log:                      ## Q7.4 AI usage log, from the session transcripts
+	$(PY2) scripts/ai_usage_log.py \
+	  $${TRANSCRIPTS:-$$HOME/.claude/projects/-home-gokboru-Documents-Course-Work-M26-IRE-Assignments} \
+	  reports/ai_usage_log.md
 
 setup:                       ## venv + deps (uv; torch cu128 for the RTX 5090)
 	uv sync

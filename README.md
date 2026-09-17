@@ -125,9 +125,13 @@ expose; an out-of-bounds gather that surfaced as an unrelated cuBLAS error; and 
 ## 5. Reproducing
 
 ```bash
-uv sync                                  # environment
-bash scripts/run_overnight.sh            # Q3 -> Q9 at dev scale, every report
+uv sync        # environment
+make a2        # Q1 -> Q9 at dev scale, every report
 ```
+
+Per-question targets if you want one piece: `make a2-q1 a2-q2 a2-q3 a2-q4 a2-q5`,
+plus `a2-test`, `a2-note`, `a2-log`, and `a2-submit` for the leaderboard files at
+large scale (hours). `make a2` is `scripts/run_overnight.sh`.
 
 `run_overnight.sh` is the one-command path: one step per line, each logged and
 isolated so a single failure does not abandon the rest, with thread caps and
