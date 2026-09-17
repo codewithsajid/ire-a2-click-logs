@@ -13,6 +13,13 @@ set -uo pipefail
 # Unbuffered: python buffers stdout when it is not a tty, so a long step goes
 # dark for minutes and a status check cannot tell progress from a hang.
 export PYTHONUNBUFFERED=1
+# Cap the thread pools. LightGBM and polars each default to every core, so two
+# concurrent steps ask for 2x the machine and spend the difference on context
+# switches -- measured at load 77 on a 48-core box with another project running,
+# where an ablation that takes 3.5 min standalone had not finished in 28. A cap
+# makes these finish sooner, not later, and leaves the box usable.
+export OMP_NUM_THREADS="${A2_THREADS:-12}"
+export POLARS_MAX_THREADS="${A2_THREADS:-12}"
 PY="${PY:-.venv/bin/python}"
 LOG="${LOG:-logs}"
 mkdir -p "$LOG" reports/q3 reports/q4 reports/q5

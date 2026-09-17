@@ -48,6 +48,32 @@ from newsrec.semantic import ANNIndex, l2_normalise, user_vectors
 from newsrec.store import FeatureStore
 
 
+def load_guard(max_load_per_core: float, force: bool) -> dict:
+    """Refuse to benchmark a box that is busy with something else.
+
+    A latency number taken under contention measures the contention. This is the
+    same class of error as A1's cold read served warm by a live memmap: the rig
+    reports a plausible figure and nothing in the output says it is wrong. So the
+    load is recorded in the result either way, and a benchmark on a loaded box
+    stops rather than publishes -- measured once at load 77 on 48 cores with an
+    unrelated job running, where the p99 would have been several times the truth.
+    """
+    cores = os.cpu_count() or 1
+    load1, load5, load15 = os.getloadavg()
+    per_core = load1 / cores
+    info = {"cores": cores, "load1": round(load1, 2), "load5": round(load5, 2),
+            "load15": round(load15, 2), "load_per_core": round(per_core, 3),
+            "threshold": max_load_per_core, "forced": force}
+    if per_core > max_load_per_core and not force:
+        raise SystemExit(
+            f"load {load1:.1f} over {cores} cores = {per_core:.2f}/core, above the "
+            f"{max_load_per_core} threshold. A latency measured here is a "
+            f"measurement of the other workload. Re-run when the box is quiet, "
+            f"or pass --force to record it anyway (the load is stored either way)."
+        )
+    return info
+
+
 def rss_mb() -> float:
     with open("/proc/self/statm") as f:
         return int(f.read().split()[1]) * os.sysconf("SC_PAGESIZE") / 2 ** 20
@@ -121,8 +147,16 @@ def main() -> None:
     ap.add_argument("--instance-usd-hr", type=float, default=0.50,
                     help="price of the box the benchmark ran on; stated as an "
                          "assumption because the cost answer is linear in it")
+    ap.add_argument("--max-load-per-core", type=float, default=0.35,
+                    help="refuse to benchmark above this 1-minute load per core")
+    ap.add_argument("--force", action="store_true",
+                    help="benchmark anyway; the load is recorded in the result")
     ap.add_argument("--out", type=Path, default=Path("reports/q4"))
     a = ap.parse_args()
+
+    load = load_guard(a.max_load_per_core, a.force)
+    print(f"   box: {load['cores']} cores, load {load['load1']} "
+          f"({load['load_per_core']}/core)")
 
     emb_name = a.embedding or ("contrastive" if a.dataset == "ebnerd"
                                else "sentence-transformers/all-MiniLM-L6-v2")
@@ -235,6 +269,7 @@ def main() -> None:
           f"at ${a.instance_usd_hr}/hr (ideal scaling)")
 
     out = {"dataset": a.dataset, "variant": a.variant, "embedding": emb_name,
+           "load_at_measurement": load,
            "k": a.k, "universe": int(len(universe)),
            "n_articles": fs.n_articles, "n_users": int(len(user_ids)),
            "memory": mem, "latency": lat,
