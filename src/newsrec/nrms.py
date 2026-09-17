@@ -142,13 +142,15 @@ class NRMS(nn.Module):
 
     def __init__(self, doc_dim: int, heads: int = 16, head_dim: int = 16,
                  units=(512, 512, 512), attn_hidden: int = 200,
-                 dropout: float = 0.2, extra_dim: int = 0):
+                 dropout: float = 0.2, extra_dim: int = 0,
+                 extra_mode: str = "add"):
         super().__init__()
         out = heads * head_dim
         self.news = NewsEncoder(doc_dim, units, out, dropout)
         self.self_attn = MultiHeadSelfAttention(out, heads, head_dim)
         self.pool = AdditiveAttention(out, attn_hidden)
         self.extra_dim = extra_dim
+        self.extra_mode = extra_mode
         if extra_dim:
             self.extra = nn.Sequential(
                 nn.Linear(extra_dim, 64), nn.ReLU(),
@@ -157,6 +159,15 @@ class NRMS(nn.Module):
             # baseline and any gain is attributable to what it learns here
             nn.init.zeros_(self.extra[-1].weight)
             nn.init.zeros_(self.extra[-1].bias)
+            # `bounded` caps what the branch can contribute: alpha * tanh(h),
+            # with alpha learned from zero. The unbounded additive form is a
+            # shortcut that can dominate the slate softmax before the tower has
+            # learned anything -- measured on MIND, where it drove validation AUC
+            # from 0.6207 to 0.5202 within one epoch while the training loss
+            # looked healthy, and a 10x slower head did not rescue it. The dot
+            # product it is added to lives on a modest scale; an unbounded head
+            # does not have to.
+            self.alpha = nn.Parameter(torch.zeros(1)) if extra_mode == "bounded" else None
 
     def user_vector(self, hist: torch.Tensor, hist_mask: torch.Tensor) -> torch.Tensor:
         h = self.news(hist)                       # (B, H, out)
@@ -169,7 +180,8 @@ class NRMS(nn.Module):
         c = self.news(cand)                       # (B, C, out)
         s = torch.einsum("bcd,bd->bc", c, u)
         if self.extra_dim and extra is not None:
-            s = s + self.extra(extra).squeeze(-1)
+            h = self.extra(extra).squeeze(-1)
+            s = s + (self.alpha * torch.tanh(h) if self.alpha is not None else h)
         return s
 
 

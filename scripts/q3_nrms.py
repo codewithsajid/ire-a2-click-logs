@@ -115,9 +115,26 @@ def score_all(model, emb_t, hist_ids, hist_mask, art, extra, device, batch=4096)
     return out
 
 
-def train_nrms(tr, va, emb_t, hist_tr, hist_va, args, device, extra_dim, stats):
-    model = NRMS(doc_dim=emb_t.shape[1], extra_dim=extra_dim).to(device)
-    opt = torch.optim.Adam(l2_groups(model, 1e-4), lr=args.lr)
+def train_nrms(tr, va, emb_t, hist_tr, hist_va, args, device, extra_dim, stats,
+               extra_lr_mult: float = 1.0):
+    model = NRMS(doc_dim=emb_t.shape[1], extra_dim=extra_dim,
+                 extra_mode=args.extra_mode).to(device)
+    groups = l2_groups(model, 1e-4)
+    if extra_dim and extra_lr_mult != 1.0:
+        # Control for "is the freshness head failing to help, or failing to
+        # optimise". The head is a shortcut branch: it can fit the 1+4 training
+        # slate quickly and starve the tower that has to generalise to a full
+        # candidate list. Slowing it down separates the two explanations --
+        # if a slower head recovers the baseline, the problem was optimisation;
+        # if it still hurts, freshness genuinely does not transfer here.
+        ids = {id(p) for p in model.extra.parameters()}
+        if model.alpha is not None:
+            ids.add(id(model.alpha))
+        for g in groups:
+            g["params"] = [p for p in g["params"] if id(p) not in ids]
+        groups.append({"params": list(model.extra.parameters()),
+                       "weight_decay": 0.0, "lr": args.lr * extra_lr_mult})
+    opt = torch.optim.Adam(groups, lr=args.lr)
 
     imp = tr["imp"].to_numpy()
     art = tr["article_idx"].to_numpy()
@@ -159,7 +176,7 @@ def train_nrms(tr, va, emb_t, hist_tr, hist_va, args, device, extra_dim, stats):
             loss = torch.nn.functional.cross_entropy(
                 logits, torch.zeros(len(b), dtype=torch.long, device=device))
             opt.zero_grad(); loss.backward(); opt.step()
-            tot += float(loss); nb += 1
+            tot += loss.item(); nb += 1
 
         # --- validation AUC, on the real candidate lists
         va_ids, va_mask = build_hist_matrix(va["user_idx"].to_numpy(), hist_va, args.history)
@@ -198,6 +215,10 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--extra-mode", default="bounded", choices=["add", "bounded"],
+                    help="how the freshness head enters the score")
+    ap.add_argument("--extra-lr-mult", type=float, default=1.0,
+                    help="learning-rate multiplier for the freshness head only")
     ap.add_argument("--out", type=Path, default=Path("reports/q3"))
     a = ap.parse_args()
 
@@ -230,7 +251,8 @@ def main() -> None:
         print(f"\n   === {name} ===")
         t0 = time.perf_counter()
         model, best_val = train_nrms(tr, va, emb_t, hist_tr, hist_va, a, device,
-                                     extra_dim, stats)
+                                     extra_dim, stats,
+                                     extra_lr_mult=a.extra_lr_mult)
         timing[name] = round(time.perf_counter() - t0, 1)
         s = score_all(model, emb_t, te_ids, te_mask, te_art,
                       Xte if extra_dim else None, device)
@@ -254,12 +276,17 @@ def main() -> None:
            "hparams": {"history": a.history, "npratio": a.npratio, "lr": a.lr,
                        "batch": a.batch, "epochs": a.epochs, "heads": 16,
                        "head_dim": 16, "attn_hidden": 200, "dropout": 0.2,
-                       "units": [512, 512, 512], "l2_newsencoder": 1e-4},
+                       "units": [512, 512, 512], "l2_newsencoder": 1e-4,
+                       "extra_mode": a.extra_mode},
            "extra_features": list(EXTRA),
            "train_seconds": timing, "results": results,
            "paired_improvement": paired}
     a.out.mkdir(parents=True, exist_ok=True)
-    f = a.out / f"nrms_{a.dataset}_{a.variant}.json"
+    tag = "" if a.extra_lr_mult == 1.0 else f"_xlr{a.extra_lr_mult:g}"
+    tag += "" if a.extra_mode == "bounded" else f"_{a.extra_mode}"
+    out["extra_lr_mult"] = a.extra_lr_mult
+    out["extra_mode"] = a.extra_mode
+    f = a.out / f"nrms_{a.dataset}_{a.variant}{tag}.json"
     f.write_text(json.dumps(out, indent=2))
     print(f"\n   wrote {f}")
 
