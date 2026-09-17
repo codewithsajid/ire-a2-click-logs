@@ -257,7 +257,11 @@ def main() -> None:
         "cores": cores,
         "qps_per_box_ideal": round(qps_box, 1),
         "instance_usd_per_hour": a.instance_usd_hr,
-        "usd_per_1000_queries": round(a.instance_usd_hr / max(qps_box, 1e-9) / 3.6, 6),
+        # NOT round(x, 6): the figure is of order 1e-6, so six decimal places
+        # stores one significant digit and the reported cost stops matching the
+        # arithmetic that produced it. Significant figures, not decimal places.
+        "usd_per_1000_queries": float(f"{a.instance_usd_hr / max(qps_box, 1e-9) / 3.6:.4g}"),
+        "usd_per_1000_queries_formula": "instance_usd_hr / (qps_per_box * 3.6)",
         "note": ("linear scaling across cores is an upper bound: A1 measured "
                  "110 -> 467 q/s going 1 -> 48 leaves, i.e. 4.23x for 48x the "
                  "threads, so the realistic figure is several times this"),

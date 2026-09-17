@@ -323,3 +323,42 @@ def paired_report(per_imp_a: pl.DataFrame, per_imp_b: pl.DataFrame,
             continue
         out[m] = paired_bootstrap(j[m].to_numpy(), j[f"{m}_b"].to_numpy(), n_boot=n_boot)
     return out
+
+
+def calibration(scores: np.ndarray, labels: np.ndarray, bins: int = 10) -> dict:
+    """Reliability of a score read as a probability, plus Brier and ECE.
+
+    A ranking metric is invariant to any monotone transform of the score, so a
+    model can order perfectly while every probability it emits is twice the truth.
+    That distinction only bites when a number is consumed at face value -- a bid,
+    a blend across surfaces, a threshold -- but it is cheap to report and it is
+    the one property AUC structurally cannot see.
+
+    LambdaRank scores are not probabilities at all; they are unbounded reals whose
+    scale is arbitrary. They are squashed with a logistic here purely so the
+    question can be asked, and the answer for a ranking objective is expected to
+    be *poor* -- that is the point of measuring it rather than assuming it.
+
+    Returns expected calibration error (binned |confidence - accuracy|), the Brier
+    score, and the per-bin table the reliability curve is drawn from.
+    """
+    s = np.asarray(scores, dtype=np.float64)
+    y = np.asarray(labels, dtype=np.float64)
+    p = 1.0 / (1.0 + np.exp(-s))
+    edges = np.linspace(0.0, 1.0, bins + 1)
+    idx = np.clip(np.digitize(p, edges[1:-1], right=False), 0, bins - 1)
+    rows, ece = [], 0.0
+    for b in range(bins):
+        m = idx == b
+        n = int(m.sum())
+        if not n:
+            continue
+        conf, acc = float(p[m].mean()), float(y[m].mean())
+        ece += (n / len(p)) * abs(conf - acc)
+        rows.append({"bin": b, "n": n, "lo": float(edges[b]), "hi": float(edges[b + 1]),
+                     "mean_predicted": round(conf, 5), "observed_rate": round(acc, 5)})
+    return {"ece": round(float(ece), 5),
+            "brier": round(float(np.mean((p - y) ** 2)), 5),
+            "base_rate": round(float(y.mean()), 5),
+            "mean_predicted": round(float(p.mean()), 5),
+            "bins": rows}

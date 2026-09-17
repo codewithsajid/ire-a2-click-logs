@@ -47,9 +47,9 @@ import numpy as np
 import polars as pl
 
 from newsrec.embeddings import article_embeddings
-from newsrec.evaluate import (METRICS, bootstrap, coverage, intra_list_diversity,
-                              novelty, paired_report, rank_metrics,
-                              summarise_ranking, topk_lists)
+from newsrec.evaluate import (METRICS, bootstrap, calibration, coverage,
+                              intra_list_diversity, novelty, paired_report,
+                              rank_metrics, summarise_ranking, topk_lists)
 from newsrec.rerank import FAMILIES, SHIPPED, feature_names, predict, train
 from newsrec.semantic import l2_normalise
 from newsrec.store import FeatureStore
@@ -101,6 +101,15 @@ def main() -> None:
     ap.add_argument("--objective", default="lambdarank")
     ap.add_argument("--rounds", type=int, default=600)
     ap.add_argument("--n-boot", type=int, default=500)
+    ap.add_argument("--pipeline", default="in-impression",
+                    choices=["in-impression", "two-stage"],
+                    help="which pipeline to score. Q5 asks for the FULL TWO-STAGE "
+                         "pipeline; `in-impression` is the leaderboard's question "
+                         "and is reported alongside because they are not the same "
+                         "thing and neither substitutes for the other.")
+    ap.add_argument("--twostage-frame", default="",
+                    help="cascade parquet; default is the no-union test frame, "
+                         "which keeps the impressions stage one missed")
     ap.add_argument("--out", type=Path, default=Path("reports/q5"))
     a = ap.parse_args()
 
@@ -110,6 +119,38 @@ def main() -> None:
     root = Path("artifacts/features") / a.dataset / a.variant
     tr, va, te = (pl.read_parquet(root / f"{s}.parquet").sort("imp")
                   for s in ("train", "val", "test"))
+
+    if a.pipeline == "two-stage":
+        # Score what the cascade actually delivers: stage one's real top-K with
+        # nothing injected, and every impression kept -- including the ~79%
+        # (EB-NeRD) and ~90% (MIND) where retrieval returned no clicked article,
+        # which score zero. Dropping those would report the cascade's precision
+        # while hiding its recall, and the resulting numbers are bounded by
+        # recall@K rather than comparable to the in-impression table.
+        ts_root = Path("artifacts/twostage") / a.dataset / a.variant
+        cand = ([Path(a.twostage_frame)] if a.twostage_frame
+                else sorted(ts_root.glob("test_*_nounion.parquet")))
+        if not cand or not cand[0].exists():
+            raise SystemExit(
+                f"no cascade frame under {ts_root}; run scripts/q2_twostage.py "
+                f"--dataset {a.dataset} first")
+        te = pl.read_parquet(cand[0]).sort("imp")
+        # Train on the cascade's OWN distribution, not on the shown lists.
+        # Scoring a shown-trained model against retrieved candidates measures the
+        # train/serve mismatch rather than the pipeline -- measured, it put the
+        # shipped arm at 0.3981 AUC, below random and below content-only, which
+        # is a fact about the mismatch and not about the two-stage system.
+        tr_c = sorted(ts_root.glob("train_*_nounion.parquet"))
+        va_c = sorted(ts_root.glob("val_*_nounion.parquet"))
+        if not tr_c or not va_c:
+            raise SystemExit(
+                f"cascade train/val frames missing under {ts_root}; they are "
+                f"written by scripts/q2_twostage.py --compare-training-sets")
+        tr = pl.read_parquet(tr_c[0]).sort("imp")
+        va = pl.read_parquet(va_c[0]).sort("imp")
+        print(f"   two-stage frames: train={tr_c[0].name} ({tr.height:,} rows), "
+              f"test={cand[0].name} ({te.height:,} rows over "
+              f"{te['imp'].n_unique():,} impressions)")
 
     emb = l2_normalise(np.asarray(article_embeddings(fs, emb_name), dtype=np.float32))
     # novelty's reference distribution: clicks strictly before the scored split
@@ -141,6 +182,11 @@ def main() -> None:
             pl.Series("score", s)), ks=(5, 10))
         overall[name] = summarise_with_ci(pi, a.n_boot)
         overall[name].update(beyond_accuracy(te, s, emb, pop_share, fs.n_articles))
+        # L7 s.38: a ranking metric cannot see whether the score means anything
+        # at face value. Reported for every arm, expected to be poor for a
+        # ranking objective, and measured rather than assumed.
+        overall[name]["calibration"] = calibration(
+            np.asarray(s, dtype=np.float64), te["label"].to_numpy().astype(float))
 
     print(f"\n   Q5 all metrics, full pipeline (95% CI from bootstrap over impressions)")
     print(f"   {'model':<16} {'AUC':>8} {'MRR':>8} {'nDCG@5':>8} {'nDCG@10':>8} "
@@ -232,14 +278,26 @@ def main() -> None:
                   f"article-log {v['article_log_auc']:.4f}  -> "
                   f"{'article-log' if v['article_log_wins'] else 'content'} wins")
 
+    print(f"\n   calibration (scores squashed logistically; a ranking objective "
+          f"is not a probability)")
+    print(f"   {'model':<18} {'ECE':>8} {'Brier':>8} {'mean p':>8} {'base rate':>10}")
+    for name, r in overall.items():
+        c = r.get("calibration", {})
+        print(f"   {name:<18} {c.get('ece', float('nan')):>8.4f} "
+              f"{c.get('brier', float('nan')):>8.4f} "
+              f"{c.get('mean_predicted', float('nan')):>8.4f} "
+              f"{c.get('base_rate', float('nan')):>10.4f}")
+
     out = {"dataset": a.dataset, "variant": a.variant, "embedding": emb_name,
+           "pipeline": a.pipeline,
            "cold_definition": cold_def, "head_quantile": HEAD_QUANTILE,
            "head_exposure_threshold": thr,
            "arms": {"content": list(CONTENT_COLS),
                     "article_log": list(ARTICLE_LOG_COLS)},
            "overall": overall, "slices": sliced, "head_tail_verdict": verdict}
     a.out.mkdir(parents=True, exist_ok=True)
-    f = a.out / f"eval_{a.dataset}_{a.variant}.json"
+    tag = "" if a.pipeline == "in-impression" else "_twostage"
+    f = a.out / f"eval_{a.dataset}_{a.variant}{tag}.json"
     f.write_text(json.dumps(out, indent=2))
     print(f"\n   wrote {f}")
 

@@ -4,10 +4,10 @@
   "embedding": "contrastive",
   "load_at_measurement": {
     "cores": 48,
-    "load1": 1.04,
-    "load5": 1.44,
-    "load15": 3.19,
-    "load_per_core": 0.022,
+    "load1": 3.66,
+    "load5": 9.62,
+    "load15": 6.18,
+    "load_per_core": 0.076,
     "threshold": 0.35,
     "forced": false
   },
@@ -26,88 +26,89 @@
       "kind": "IndexFlatIP",
       "n_vectors": 1677,
       "serialized_mb": 4.91,
-      "rss_delta_mb": 14.99
+      "rss_delta_mb": 15.28
     },
     "bm25_index": {
       "n_docs": 20738,
       "vocab": 30093,
       "postings": 298886,
       "csr_mb": 2.36,
-      "rss_delta_mb": 156.19,
-      "build_seconds": 0.2
+      "rss_delta_mb": 158.88,
+      "build_seconds": 0.16
     },
     "feature_store": {
       "parquet_on_disk_mb": 125.68,
       "article_tables_rows": 9771,
-      "article_tables_rss_mb": 1.88,
-      "estimated_bytes_per_article": 94.8
+      "article_tables_rss_mb": 1.5,
+      "estimated_bytes_per_article": 75.8
     },
-    "total_resident_mb": 234.72
+    "total_resident_mb": 237.26
   },
   "latency": {
     "bm25": {
       "n": 500,
-      "mean_ms": 0.3299577087163925,
-      "p50_ms": 0.3268290311098099,
-      "p95_ms": 0.38015358150005335,
-      "p99_ms": 0.40640376508235926,
-      "max_ms": 0.4549659788608551
+      "mean_ms": 0.314830519258976,
+      "p50_ms": 0.3129802644252777,
+      "p95_ms": 0.3538556396961212,
+      "p99_ms": 0.3738318756222725,
+      "max_ms": 1.313488930463791
     },
     "ann": {
       "n": 500,
-      "mean_ms": 0.11150027811527252,
-      "p50_ms": 0.11099874973297119,
-      "p95_ms": 0.12074019759893417,
-      "p99_ms": 0.12989602982997894,
-      "max_ms": 0.13938918709754944
+      "mean_ms": 0.10939820110797882,
+      "p50_ms": 0.10857917368412018,
+      "p95_ms": 0.114474818110466,
+      "p99_ms": 0.11820077896118161,
+      "max_ms": 0.3727637231349945
     },
     "fuse": {
       "n": 500,
-      "mean_ms": 0.04045666754245758,
-      "p50_ms": 0.03997422754764557,
-      "p95_ms": 0.04502087831497191,
-      "p99_ms": 0.05078323185443878,
-      "max_ms": 0.05489960312843323
+      "mean_ms": 0.038219183683395386,
+      "p50_ms": 0.038003548979759216,
+      "p95_ms": 0.039874203503131866,
+      "p99_ms": 0.04444051533937454,
+      "max_ms": 0.08787587285041809
     },
     "feature_fetch": {
       "n": 500,
-      "mean_ms": 0.05170738697052002,
-      "p50_ms": 0.05110353231430054,
-      "p95_ms": 0.05527678877115248,
-      "p99_ms": 0.06429243832826614,
-      "max_ms": 0.07126107811927795
+      "mean_ms": 0.05042244493961334,
+      "p50_ms": 0.04997849464416504,
+      "p95_ms": 0.05434304475784302,
+      "p99_ms": 0.056073404848575585,
+      "max_ms": 0.07015839219093323
     },
     "rerank": {
       "n": 500,
-      "mean_ms": 0.27211809158325195,
-      "p50_ms": 0.26676245033741,
-      "p95_ms": 0.2896606922149658,
-      "p99_ms": 0.392203293740749,
-      "max_ms": 1.2583769857883453
+      "mean_ms": 0.26261385530233383,
+      "p50_ms": 0.25785714387893677,
+      "p95_ms": 0.27100779116153717,
+      "p99_ms": 0.28383553028106684,
+      "max_ms": 1.5877969563007355
     },
     "end_to_end": {
       "n": 500,
-      "mean_ms": 0.8061526641249657,
-      "p50_ms": 0.7973182946443558,
-      "p95_ms": 0.878038816154003,
-      "p99_ms": 0.9706419333815574,
-      "max_ms": 1.8161982297897339
+      "mean_ms": 0.7758868634700775,
+      "p50_ms": 0.7687490433454514,
+      "p95_ms": 0.8147723972797393,
+      "p99_ms": 0.8389344438910483,
+      "max_ms": 2.1550096571445465
     }
   },
   "stage_split": {
-    "candidate_generation_ms": 0.482,
-    "reranking_ms": 0.324,
-    "feature_fetch_share_of_rerank": 0.1597
+    "candidate_generation_ms": 0.462,
+    "reranking_ms": 0.313,
+    "feature_fetch_share_of_rerank": 0.1611
   },
   "cost": {
     "sla_ms": 100.0,
-    "p99_ms": 0.9706419333815574,
+    "p99_ms": 0.8389344438910483,
     "meets_sla": true,
-    "qps_single_threaded": 1240.5,
+    "qps_single_threaded": 1288.8,
     "cores": 48,
-    "qps_per_box_ideal": 59542.1,
+    "qps_per_box_ideal": 61864.7,
     "instance_usd_per_hour": 0.5,
-    "usd_per_1000_queries": 2e-06,
+    "usd_per_1000_queries": 2.245e-06,
+    "usd_per_1000_queries_formula": "instance_usd_hr / (qps_per_box * 3.6)",
     "note": "linear scaling across cores is an upper bound: A1 measured 110 -> 467 q/s going 1 -> 48 leaves, i.e. 4.23x for 48x the threads, so the realistic figure is several times this"
   }
 }
