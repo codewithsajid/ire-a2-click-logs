@@ -10,6 +10,9 @@
 # contention. Everything else may overlap freely.
 set -uo pipefail
 
+# Unbuffered: python buffers stdout when it is not a tty, so a long step goes
+# dark for minutes and a status check cannot tell progress from a hang.
+export PYTHONUNBUFFERED=1
 PY="${PY:-.venv/bin/python}"
 LOG="${LOG:-logs}"
 mkdir -p "$LOG" reports/q3 reports/q4 reports/q5
