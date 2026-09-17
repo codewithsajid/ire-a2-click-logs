@@ -1,0 +1,113 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "embedding": "contrastive",
+  "load_at_measurement": {
+    "cores": 48,
+    "load1": 1.04,
+    "load5": 1.44,
+    "load15": 3.19,
+    "load_per_core": 0.022,
+    "threshold": 0.35,
+    "forced": false
+  },
+  "k": 200,
+  "universe": 1677,
+  "n_articles": 20738,
+  "n_users": 15342,
+  "memory": {
+    "article_vectors": {
+      "n": 20738,
+      "dim": 768,
+      "bytes": 63707136,
+      "mb": 60.76
+    },
+    "ann_index": {
+      "kind": "IndexFlatIP",
+      "n_vectors": 1677,
+      "serialized_mb": 4.91,
+      "rss_delta_mb": 14.99
+    },
+    "bm25_index": {
+      "n_docs": 20738,
+      "vocab": 30093,
+      "postings": 298886,
+      "csr_mb": 2.36,
+      "rss_delta_mb": 156.19,
+      "build_seconds": 0.2
+    },
+    "feature_store": {
+      "parquet_on_disk_mb": 125.68,
+      "article_tables_rows": 9771,
+      "article_tables_rss_mb": 1.88,
+      "estimated_bytes_per_article": 94.8
+    },
+    "total_resident_mb": 234.72
+  },
+  "latency": {
+    "bm25": {
+      "n": 500,
+      "mean_ms": 0.3299577087163925,
+      "p50_ms": 0.3268290311098099,
+      "p95_ms": 0.38015358150005335,
+      "p99_ms": 0.40640376508235926,
+      "max_ms": 0.4549659788608551
+    },
+    "ann": {
+      "n": 500,
+      "mean_ms": 0.11150027811527252,
+      "p50_ms": 0.11099874973297119,
+      "p95_ms": 0.12074019759893417,
+      "p99_ms": 0.12989602982997894,
+      "max_ms": 0.13938918709754944
+    },
+    "fuse": {
+      "n": 500,
+      "mean_ms": 0.04045666754245758,
+      "p50_ms": 0.03997422754764557,
+      "p95_ms": 0.04502087831497191,
+      "p99_ms": 0.05078323185443878,
+      "max_ms": 0.05489960312843323
+    },
+    "feature_fetch": {
+      "n": 500,
+      "mean_ms": 0.05170738697052002,
+      "p50_ms": 0.05110353231430054,
+      "p95_ms": 0.05527678877115248,
+      "p99_ms": 0.06429243832826614,
+      "max_ms": 0.07126107811927795
+    },
+    "rerank": {
+      "n": 500,
+      "mean_ms": 0.27211809158325195,
+      "p50_ms": 0.26676245033741,
+      "p95_ms": 0.2896606922149658,
+      "p99_ms": 0.392203293740749,
+      "max_ms": 1.2583769857883453
+    },
+    "end_to_end": {
+      "n": 500,
+      "mean_ms": 0.8061526641249657,
+      "p50_ms": 0.7973182946443558,
+      "p95_ms": 0.878038816154003,
+      "p99_ms": 0.9706419333815574,
+      "max_ms": 1.8161982297897339
+    }
+  },
+  "stage_split": {
+    "candidate_generation_ms": 0.482,
+    "reranking_ms": 0.324,
+    "feature_fetch_share_of_rerank": 0.1597
+  },
+  "cost": {
+    "sla_ms": 100.0,
+    "p99_ms": 0.9706419333815574,
+    "meets_sla": true,
+    "qps_single_threaded": 1240.5,
+    "cores": 48,
+    "qps_per_box_ideal": 59542.1,
+    "instance_usd_per_hour": 0.5,
+    "usd_per_1000_queries": 2e-06,
+    "note": "linear scaling across cores is an upper bound: A1 measured 110 -> 467 q/s going 1 -> 48 leaves, i.e. 4.23x for 48x the threads, so the realistic figure is several times this"
+  }
+}

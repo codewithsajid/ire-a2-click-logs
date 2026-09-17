@@ -14,6 +14,8 @@ re-ranking costs on top and where the budget actually goes.
 
 | | ANN index | BM25 index | article vectors | feature store (disk) | total resident |
 |---|---|---|---|---|---|
+| EB-NeRD | 4.91 MB (1,677 vecs) | 2.36 MB (298,886 postings) | 60.76 MB | 125.68 MB | 234.72 MB |
+| MIND | 33.36 MB (22,771 vecs) | 12.89 MB (1,656,840 postings) | 95.56 MB | 53.2 MB | 998.68 MB |
 
 ## Q4.2 — p99 latency for a single user request
 
@@ -24,6 +26,18 @@ exactly the tail it is about.
 
 | | stage | p50 | p95 | **p99** | mean |
 |---|---|---|---|---|---|
+| EB-NeRD | bm25 | 0.327 | 0.380 | **0.406** | 0.330 |
+| EB-NeRD | ann | 0.111 | 0.121 | **0.130** | 0.112 |
+| EB-NeRD | fuse | 0.040 | 0.045 | **0.051** | 0.040 |
+| EB-NeRD | feature_fetch | 0.051 | 0.055 | **0.064** | 0.052 |
+| EB-NeRD | rerank | 0.267 | 0.290 | **0.392** | 0.272 |
+| EB-NeRD | **end_to_end** | 0.797 | 0.878 | **0.971** | 0.806 |
+| MIND | bm25 | 3.060 | 3.482 | **3.774** | 3.051 |
+| MIND | ann | 0.391 | 0.445 | **0.526** | 0.394 |
+| MIND | fuse | 0.049 | 0.056 | **0.061** | 0.050 |
+| MIND | feature_fetch | 0.055 | 0.060 | **0.074** | 0.056 |
+| MIND | rerank | 0.073 | 0.086 | **0.111** | 0.084 |
+| MIND | **end_to_end** | 3.635 | 4.064 | **4.491** | 3.635 |
 
 The cascade's own argument (L6 s.21) is that the funnel exists because
 *feature* cost, not model cost, forbids running the heavy ranker on
@@ -31,11 +45,15 @@ everything. That is testable here:
 
 | | candidate generation | re-ranking | feature fetch as share of re-ranking |
 |---|---|---|---|
+| EB-NeRD | 0.482 ms | 0.324 ms | 16.0% |
+| MIND | 3.494 ms | 0.14 ms | 39.9% |
 
 ## Q4.3 — Cost per 1000 queries at the SLA
 
 | | p99 | SLA met | q/s single-threaded | cores | q/s per box (ideal) | $ / 1000 queries |
 |---|---|---|---|---|---|---|
+| EB-NeRD | 0.97 ms | yes | 1240.5 | 48 | 59542.1 | $0.000002 |
+| MIND | 4.49 ms | yes | 275.1 | 48 | 13205.9 | $0.000011 |
 
 The per-box figure assumes linear scaling across cores, which is an
 upper bound and is stated as one: A1 measured 110 → 467 q/s going from

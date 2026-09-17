@@ -69,7 +69,8 @@ def build(fs, split, emb, k1, b, cache: Path, max_impressions=0, rebuild=False,
 
 
 def score_submit_chunked(fs, model, feats, emb, k1, b, chunk: int,
-                         out_dir: Path, rebuild: bool) -> pl.DataFrame:
+                         out_dir: Path, rebuild: bool,
+                         slot_budget: int = 14_000_000) -> pl.DataFrame:
     """Score the unlabelled split a slice of impressions at a time.
 
     Returns (src_row, position, score) for every candidate slot. Only the score
@@ -78,26 +79,58 @@ def score_submit_chunked(fs, model, feats, emb, k1, b, chunk: int,
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     n_imp = fs.impressions("submit").select(pl.len()).collect().item()
-    print(f"   submit split: {n_imp:,} impressions, chunk {chunk:,}")
+    # Cost is linear in candidate *slots*, not in impressions, and EB-NeRD's
+    # submit split is not uniform: its last 536,710 rows are the beyond-accuracy
+    # track, which carries ~100 candidates each against ~11.7 everywhere else --
+    # 53.9M slots where a normal chunk holds 11.7M. A fixed impression chunk put
+    # 4.6x the work in the smallest slice and was killed for it, twice, silently.
+    # So a chunk that exceeds the slot budget is sub-divided; the legacy cache
+    # names for already-scored chunks still resolve.
+    n_cand = (fs.impressions("submit").with_row_index("_i")
+              .select("_i", "n_candidates").collect())
+    print(f"   submit split: {n_imp:,} impressions, "
+          f"{int(n_cand['n_candidates'].sum()):,} slots, "
+          f"chunk {chunk:,} impressions capped at {slot_budget:,} slots")
     parts = []
     for start in range(0, n_imp, chunk):
-        cache = out_dir / f"submit_scores_{start}.parquet"
-        if cache.exists() and not rebuild:
-            parts.append(pl.read_parquet(cache)); print(f"     [{start:,}] cached")
+        stop = min(start + chunk, n_imp)
+        legacy = out_dir / f"submit_scores_{start}.parquet"
+        if legacy.exists() and not rebuild:
+            parts.append(pl.read_parquet(legacy)); print(f"     [{start:,}] cached")
             continue
-        t0 = time.perf_counter()
-        # slice by impression index, keeping every candidate of each impression
-        keep = (fs.impressions("submit").with_row_index("_i")
-                .filter((pl.col("_i") >= start) & (pl.col("_i") < start + chunk))
-                .select("src_row").collect()["src_row"])
-        sub = _assemble_rows(fs, emb, k1, b, keep)
-        s = predict(model, sub, feats)
-        part = sub.select("src_row", "position").with_columns(
-            pl.Series("score", s.astype(np.float32)))
-        part.write_parquet(cache)
-        parts.append(part)
-        print(f"     [{start:,}] {part.height:,} slots in {time.perf_counter() - t0:.0f}s")
+        # split this impression range into slot-bounded pieces
+        seg = n_cand.slice(start, stop - start)
+        cum = seg["n_candidates"].cast(pl.Int64).cum_sum().to_numpy()
+        bounds, lo = [], 0
+        while lo < len(cum):
+            target = (cum[lo - 1] if lo else 0) + slot_budget
+            hi = int(np.searchsorted(cum, target, side="right"))
+            hi = max(hi, lo + 1)
+            bounds.append((start + lo, start + min(hi, len(cum))))
+            lo = hi
+        for (a_, b_) in bounds:
+            cache = out_dir / f"submit_scores_{a_}_{b_}.parquet"
+            if cache.exists() and not rebuild:
+                parts.append(pl.read_parquet(cache)); print(f"     [{a_:,}-{b_:,}] cached")
+                continue
+            _score_range(fs, model, feats, emb, k1, b, n_cand, a_, b_, cache, parts)
     return pl.concat(parts)
+
+
+def _score_range(fs, model, feats, emb, k1, b, n_cand, a_, b_, cache, parts):
+    t0 = time.perf_counter()
+    keep = (fs.impressions("submit").with_row_index("_i")
+            .filter((pl.col("_i") >= a_) & (pl.col("_i") < b_))
+            .select("src_row").collect()["src_row"])
+    sub = _assemble_rows(fs, emb, k1, b, keep)
+    s = predict(model, sub, feats)
+    part = sub.select("src_row", "position").with_columns(
+        pl.Series("score", s.astype(np.float32)))
+    part.write_parquet(cache)
+    parts.append(part)
+    print(f"     [{a_:,}-{b_:,}] {part.height:,} slots in {time.perf_counter() - t0:.0f}s")
+
+
 
 
 def _assemble_rows(fs, emb, k1, b, src_rows: pl.Series) -> pl.DataFrame:
@@ -132,6 +165,10 @@ def main() -> None:
                          "within one). 0 = all")
     ap.add_argument("--chunk", type=int, default=1_000_000,
                     help="submit impressions scored per pass")
+    ap.add_argument("--slot-budget", type=int, default=14_000_000,
+                    help="hard cap on candidate slots per pass; cost is linear "
+                         "in slots and EB-NeRD's beyond-accuracy tail carries "
+                         "~100 candidates per impression against ~11.7 elsewhere")
     ap.add_argument("--rebuild", action="store_true")
     ap.add_argument("--skip-train", action="store_true",
                     help="reuse the saved large model and only re-score")
@@ -168,7 +205,7 @@ def main() -> None:
         print(importances(model, feats).head(10))
 
     scores = score_submit_chunked(fs, model, feats, emb, k1, b, a.chunk,
-                                  root / "submit_chunks", a.rebuild)
+                                  root / "submit_chunks", a.rebuild, a.slot_budget)
 
     # --- re-attach to the raw file, in its own order
     lists = (scores.lazy().sort("src_row", "position")

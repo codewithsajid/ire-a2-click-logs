@@ -164,10 +164,15 @@ feature's variance inside the slice. The two arms may be compared <i>within</i> 
 arm may not be compared <i>across</i> slices.</p>
 
 <h2>4 &nbsp;Serving and scale</h2>
-<p class=todo>The latency benchmark is pending a quiet box. <code>q4_serving</code> records the
-1-minute load average in its result and refuses to measure above 0.35/core: a p99 taken
-under contention measures the contention, and nothing in the output would say so. It
-declined twice during this run at 0.44/core.</p>
+<table><tr><th>dataset</th><th>ANN index</th><th>BM25 index</th><th>article vectors</th>
+<th>feature store (disk)</th><th>resident</th></tr><tr><td>EB-NeRD</td><td>4.91 MB</td><td>2.36 MB</td><td>60.76 MB</td><td>125.68 MB</td><td>234.72 MB</td></tr><tr><td>MIND</td><td>33.36 MB</td><td>12.89 MB</td><td>95.56 MB</td><td>53.2 MB</td><td>998.68 MB</td></tr></table>
+<table><tr><th>dataset</th><th>p50</th><th>p95</th><th>p99</th><th>cand. gen</th>
+<th>re-rank</th><th>fetch share of re-rank</th></tr><tr><td>EB-NeRD</td><td>0.80</td><td>0.88</td><td><b>0.97</b></td><td>0.482</td><td>0.324</td><td>16%</td></tr><tr><td>MIND</td><td>3.63</td><td>4.06</td><td><b>4.49</b></td><td>3.494</td><td>0.14</td><td>40%</td></tr></table>
+<table><tr><th>dataset</th><th>p99</th><th>SLA met</th><th>q/s (1 thread)</th>
+<th>$ / 1000 queries</th></tr><tr><td>EB-NeRD</td><td>0.97 ms</td><td>yes</td><td>1240.5</td><td>$0.000002</td></tr><tr><td>MIND</td><td>4.49 ms</td><td>yes</td><td>275.1</td><td>$0.000011</td></tr></table>
+<p>The per-box figure assumes linear scaling across cores and is stated as an upper
+bound: A1 measured 110&nbsp;&rarr;&nbsp;467 q/s going from 1 to 48 leaves, 4.23&times; for
+48&times; the threads.</p>
 <h2>5 &nbsp;Where it breaks at 10&times;</h2>
 <table>
 <tr><th>what breaks</th><th>why</th><th>the fix</th></tr>
