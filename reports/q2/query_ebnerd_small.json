@@ -1,0 +1,70 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "split": "test",
+  "k1": 2.0,
+  "b": 1.0,
+  "n_users": 15342,
+  "universe": 1677,
+  "history_median": 81,
+  "history_p90": 377,
+  "query_nnz_per_user": 1060.3,
+  "runs": [
+    {
+      "k3": "inf (shipped)",
+      "seconds": 2.4,
+      "recall@50": 0.04414,
+      "recall@100": 0.08597,
+      "recall@200": 0.16059,
+      "cold_recall@100": 0.08002,
+      "warm_recall@100": 0.08607
+    },
+    {
+      "k3": "1000",
+      "seconds": 2.6,
+      "recall@50": 0.04395,
+      "recall@100": 0.08588,
+      "recall@200": 0.16038,
+      "cold_recall@100": 0.08002,
+      "warm_recall@100": 0.08598
+    },
+    {
+      "k3": "32",
+      "seconds": 2.5,
+      "recall@50": 0.03788,
+      "recall@100": 0.07916,
+      "recall@200": 0.15505,
+      "cold_recall@100": 0.07932,
+      "warm_recall@100": 0.07916
+    },
+    {
+      "k3": "8",
+      "seconds": 2.5,
+      "recall@50": 0.0291,
+      "recall@100": 0.06685,
+      "recall@200": 0.14156,
+      "cold_recall@100": 0.08119,
+      "warm_recall@100": 0.0666
+    },
+    {
+      "k3": "2",
+      "seconds": 2.6,
+      "recall@50": 0.01661,
+      "recall@100": 0.05066,
+      "recall@200": 0.12429,
+      "cold_recall@100": 0.08014,
+      "warm_recall@100": 0.05013
+    },
+    {
+      "k3": "0 (binary)",
+      "seconds": 2.4,
+      "recall@50": 0.01147,
+      "recall@100": 0.03745,
+      "recall@200": 0.10633,
+      "cold_recall@100": 0.08205,
+      "warm_recall@100": 0.03666
+    }
+  ],
+  "best": "inf (shipped)",
+  "gain_vs_shipped": 0.0
+}

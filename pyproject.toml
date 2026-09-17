@@ -1,0 +1,60 @@
+[project]
+name = "newsrec-a2"
+version = "0.1.0"
+description = "CS4.406 IRE Assignment 2 - Learning from Click-Logs on EB-NeRD and MIND"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    # --- data / io ---
+    "polars>=1.17",
+    "pyarrow>=18",
+    "pandas>=2.2",
+    "numpy>=1.26,<3",
+    "scipy>=1.14",
+    "scikit-learn>=1.5",
+    "tqdm>=4.66",
+    "pyyaml>=6.0",
+    "typer>=0.15",
+    "python-dotenv>=1.0",
+    # --- lexical retrieval ---
+    "bm25s>=0.2.6",
+    "PyStemmer>=2.2",
+    "rank-bm25>=0.2.2",
+    "nltk>=3.9",
+    # --- semantic retrieval ---
+    "torch>=2.8",
+    "transformers>=4.46",
+    "sentence-transformers>=3.3",
+    "faiss-cpu>=1.9",
+    "hnswlib>=0.8",
+    # --- re-ranking (Q2) ---
+    "lightgbm>=4.5",
+    "xgboost>=2.1",
+    # --- eval / plots ---
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    # --- notebooks ---
+    "ipykernel>=6.29",
+    "jupyterlab>=4.3",
+    # --- dataset download ---
+    "huggingface-hub[cli,hf-transfer]>=0.27",
+    "datasets>=3.2",
+    "huggingface>=0.0.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.8"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/newsrec"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

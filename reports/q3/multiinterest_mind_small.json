@@ -1,0 +1,128 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "split": "test",
+  "embedding": "all-MiniLM-L6-v2",
+  "n_users": 50000,
+  "universe": 22771,
+  "history_median": 15,
+  "runs": [
+    {
+      "mode": "chunks",
+      "k": 1,
+      "seconds": 32.9,
+      "queries": 50000,
+      "recall@50": 0.02007,
+      "recall@100": 0.03571,
+      "recall@200": 0.06022,
+      "cold_recall@100": 0.02455,
+      "warm_recall@100": 0.03754
+    },
+    {
+      "mode": "chunks",
+      "k": 2,
+      "seconds": 61.7,
+      "queries": 97813,
+      "recall@50": 0.02076,
+      "recall@100": 0.0351,
+      "recall@200": 0.06032,
+      "cold_recall@100": 0.02332,
+      "warm_recall@100": 0.03703
+    },
+    {
+      "mode": "chunks",
+      "k": 3,
+      "seconds": 91.8,
+      "queries": 144233,
+      "recall@50": 0.02173,
+      "recall@100": 0.03633,
+      "recall@200": 0.05948,
+      "cold_recall@100": 0.02256,
+      "warm_recall@100": 0.03858
+    },
+    {
+      "mode": "chunks",
+      "k": 5,
+      "seconds": 141.6,
+      "queries": 230584,
+      "recall@50": 0.02184,
+      "recall@100": 0.03573,
+      "recall@200": 0.05956,
+      "cold_recall@100": 0.02329,
+      "warm_recall@100": 0.03777
+    },
+    {
+      "mode": "chunks",
+      "k": 8,
+      "seconds": 209.6,
+      "queries": 343533,
+      "recall@50": 0.02307,
+      "recall@100": 0.03651,
+      "recall@200": 0.05918,
+      "cold_recall@100": 0.02329,
+      "warm_recall@100": 0.03868
+    },
+    {
+      "mode": "kmeans",
+      "k": 1,
+      "seconds": 32.8,
+      "queries": 50000,
+      "recall@50": 0.02007,
+      "recall@100": 0.03571,
+      "recall@200": 0.06022,
+      "cold_recall@100": 0.02455,
+      "warm_recall@100": 0.03754
+    },
+    {
+      "mode": "kmeans",
+      "k": 2,
+      "seconds": 69.6,
+      "queries": 97813,
+      "recall@50": 0.02156,
+      "recall@100": 0.03629,
+      "recall@200": 0.0602,
+      "cold_recall@100": 0.02425,
+      "warm_recall@100": 0.03826
+    },
+    {
+      "mode": "kmeans",
+      "k": 3,
+      "seconds": 100.3,
+      "queries": 144233,
+      "recall@50": 0.02188,
+      "recall@100": 0.03587,
+      "recall@200": 0.05862,
+      "cold_recall@100": 0.02343,
+      "warm_recall@100": 0.03791
+    },
+    {
+      "mode": "kmeans",
+      "k": 5,
+      "seconds": 155.6,
+      "queries": 230584,
+      "recall@50": 0.02207,
+      "recall@100": 0.03629,
+      "recall@200": 0.05892,
+      "cold_recall@100": 0.02329,
+      "warm_recall@100": 0.03842
+    },
+    {
+      "mode": "kmeans",
+      "k": 8,
+      "seconds": 222.3,
+      "queries": 343533,
+      "recall@50": 0.02249,
+      "recall@100": 0.03603,
+      "recall@200": 0.05815,
+      "cold_recall@100": 0.02329,
+      "warm_recall@100": 0.03812
+    }
+  ],
+  "single_vector": 0.03571,
+  "best": {
+    "mode": "chunks",
+    "k": 8,
+    "recall@100": 0.03651
+  },
+  "gain_vs_single": 0.0224
+}

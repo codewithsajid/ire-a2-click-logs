@@ -1,0 +1,19 @@
+dataset: ebnerd
+variant: large
+article_sources: [ebnerd_large, ebnerd_testset]
+splits:
+  train:
+    source: ebnerd_large
+    part: train
+    time_to: 2023-05-24 07:00:00
+  val:
+    source: ebnerd_large
+    part: train
+    time_from: 2023-05-24 07:00:00
+  test:
+    source: ebnerd_large
+    part: validation
+  submit:
+    source: ebnerd_testset
+    part: test
+    labelled: false

@@ -1,0 +1,40 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "split": "test",
+  "n_impressions": 73152,
+  "results": {
+    "explode_groupby": {
+      "polars": {
+        "seconds": 0.044,
+        "rows": 20,
+        "peak_rss_mb": 122.6,
+        "gpu_mb": null
+      }
+    },
+    "remap_join": {
+      "polars": {
+        "seconds": 0.113,
+        "rows": 73152,
+        "peak_rss_mb": 463.8,
+        "gpu_mb": null
+      }
+    },
+    "rank_submission": {
+      "polars": {
+        "seconds": 0.887,
+        "rows": 73152,
+        "peak_rss_mb": 516.7,
+        "gpu_mb": null
+      }
+    },
+    "history_agg": {
+      "polars": {
+        "seconds": 0.046,
+        "rows": 20,
+        "peak_rss_mb": 516.7,
+        "gpu_mb": null
+      }
+    }
+  }
+}

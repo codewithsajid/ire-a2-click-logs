@@ -1,0 +1,15 @@
+dataset: mind
+variant: large
+article_sources: [MINDlarge_train, MINDlarge_dev, MINDlarge_test]
+splits:
+  train:
+    source: MINDlarge_train
+    time_to: 2019-11-14 00:00:00
+  val:
+    source: MINDlarge_train
+    time_from: 2019-11-14 00:00:00
+  test:
+    source: MINDlarge_dev
+  submit:
+    source: MINDlarge_test
+    labelled: false

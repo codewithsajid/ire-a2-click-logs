@@ -1,0 +1,32 @@
+# raw/derived data lives in /home/resources/ire_a1_data via the data/ symlink
+data
+external/
+logs/
+*.zip
+*.pt
+*.ckpt
+*.parquet
+*.npy
+*.faiss
+*.chunks.json
+__pycache__/
+.venv/
+.ipynb_checkpoints/
+.env
+reports/sub/
+reports/q3/*.npy
+reports/q2/*.npy
+reports/results.html
+reports/l2/
+reports/l3/
+reports/l4/
+reports/l5/
+reports/leaderboard/mind_codabench_competition.png
+reports/leaderboard/ebnerd_codabench_registration.png
+reports/design_note.html
+
+# A2
+artifacts/
+reports/q1/
+reports/q2/model_*.txt
+uv_sync.log

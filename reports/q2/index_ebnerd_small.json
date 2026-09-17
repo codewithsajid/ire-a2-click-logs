@@ -1,0 +1,103 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "split": "test",
+  "k1": 2.0,
+  "b": 1.0,
+  "has_body": true,
+  "n_users": 15342,
+  "runs": [
+    {
+      "field": "title",
+      "stopwords": true,
+      "stemming": true,
+      "vocab": 14982,
+      "postings": 99049,
+      "avgdl": 4.8,
+      "build_seconds": 0.17,
+      "recall@50": 0.03833,
+      "recall@100": 0.07434,
+      "recall@200": 0.14114,
+      "cold_recall@100": 0.07316,
+      "vs_shipped": -0.1353
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": true,
+      "stemming": true,
+      "vocab": 30093,
+      "postings": 298886,
+      "avgdl": 16.0,
+      "build_seconds": 0.34,
+      "recall@50": 0.04414,
+      "recall@100": 0.08597,
+      "recall@200": 0.16059,
+      "cold_recall@100": 0.08002,
+      "vs_shipped": 0.0
+    },
+    {
+      "field": "title+abstract+body",
+      "stopwords": true,
+      "stemming": true,
+      "vocab": 201488,
+      "postings": 3322422,
+      "avgdl": 243.9,
+      "build_seconds": 3.52,
+      "recall@50": 0.04072,
+      "recall@100": 0.07815,
+      "recall@200": 0.14957,
+      "cold_recall@100": 0.0862,
+      "vs_shipped": -0.091
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": false,
+      "stemming": true,
+      "vocab": 30116,
+      "postings": 429621,
+      "avgdl": 23.6,
+      "build_seconds": 0.39,
+      "recall@50": 0.04216,
+      "recall@100": 0.07767,
+      "recall@200": 0.14443,
+      "cold_recall@100": 0.08213,
+      "vs_shipped": -0.0965
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": true,
+      "stemming": false,
+      "vocab": 43170,
+      "postings": 305340,
+      "avgdl": 16.0,
+      "build_seconds": 0.38,
+      "recall@50": 0.03715,
+      "recall@100": 0.07631,
+      "recall@200": 0.14731,
+      "cold_recall@100": 0.07523,
+      "vs_shipped": -0.1124
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": false,
+      "stemming": false,
+      "vocab": 43225,
+      "postings": 436788,
+      "avgdl": 23.6,
+      "build_seconds": 0.34,
+      "recall@50": 0.03815,
+      "recall@100": 0.07224,
+      "recall@200": 0.13765,
+      "cold_recall@100": 0.07517,
+      "vs_shipped": -0.1597
+    }
+  ],
+  "shipped_recall@100": 0.08597,
+  "best": {
+    "field": "title+abstract",
+    "stopwords": true,
+    "stemming": true,
+    "recall@100": 0.08597,
+    "vs_shipped": 0.0
+  }
+}

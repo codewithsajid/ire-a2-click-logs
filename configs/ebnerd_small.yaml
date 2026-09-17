@@ -1,0 +1,20 @@
+dataset: ebnerd
+variant: small
+# Official EB-NeRD weeks (verified against the data, not the PDF):
+#   train 2023-05-18 07:00 -> 05-25 07:00 | validation 05-25 -> 06-01 | test 06-01 -> 06-08
+# We carve the last 24h of the official train week off as `val`, keep the official
+# validation week as a labelled held-out `test`, and leave the official test set as
+# the unlabelled leaderboard split. Strictly increasing in time.
+article_sources: [ebnerd_small]
+splits:
+  train:
+    source: ebnerd_small
+    part: train
+    time_to: 2023-05-24 07:00:00
+  val:
+    source: ebnerd_small
+    part: train
+    time_from: 2023-05-24 07:00:00
+  test:
+    source: ebnerd_small
+    part: validation

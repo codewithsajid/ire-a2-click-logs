@@ -1,0 +1,128 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "split": "test",
+  "embedding": "contrastive",
+  "n_users": 15342,
+  "universe": 1677,
+  "history_median": 81,
+  "runs": [
+    {
+      "mode": "chunks",
+      "k": 1,
+      "seconds": 4.2,
+      "queries": 15342,
+      "recall@50": 0.0579,
+      "recall@100": 0.10648,
+      "recall@200": 0.19054,
+      "cold_recall@100": 0.0997,
+      "warm_recall@100": 0.1066
+    },
+    {
+      "mode": "chunks",
+      "k": 2,
+      "seconds": 5.8,
+      "queries": 30684,
+      "recall@50": 0.05729,
+      "recall@100": 0.10672,
+      "recall@200": 0.19062,
+      "cold_recall@100": 0.10906,
+      "warm_recall@100": 0.10668
+    },
+    {
+      "mode": "chunks",
+      "k": 3,
+      "seconds": 7.0,
+      "queries": 46026,
+      "recall@50": 0.05744,
+      "recall@100": 0.10648,
+      "recall@200": 0.19098,
+      "cold_recall@100": 0.10415,
+      "warm_recall@100": 0.10652
+    },
+    {
+      "mode": "chunks",
+      "k": 5,
+      "seconds": 9.6,
+      "queries": 76710,
+      "recall@50": 0.05773,
+      "recall@100": 0.10657,
+      "recall@200": 0.19124,
+      "cold_recall@100": 0.10532,
+      "warm_recall@100": 0.10659
+    },
+    {
+      "mode": "chunks",
+      "k": 8,
+      "seconds": 13.3,
+      "queries": 121538,
+      "recall@50": 0.057,
+      "recall@100": 0.10623,
+      "recall@200": 0.19093,
+      "cold_recall@100": 0.09713,
+      "warm_recall@100": 0.10639
+    },
+    {
+      "mode": "kmeans",
+      "k": 1,
+      "seconds": 4.2,
+      "queries": 15342,
+      "recall@50": 0.0579,
+      "recall@100": 0.10648,
+      "recall@200": 0.19054,
+      "cold_recall@100": 0.0997,
+      "warm_recall@100": 0.1066
+    },
+    {
+      "mode": "kmeans",
+      "k": 2,
+      "seconds": 11.6,
+      "queries": 30684,
+      "recall@50": 0.05986,
+      "recall@100": 0.11049,
+      "recall@200": 0.1968,
+      "cold_recall@100": 0.09666,
+      "warm_recall@100": 0.11074
+    },
+    {
+      "mode": "kmeans",
+      "k": 3,
+      "seconds": 15.1,
+      "queries": 46026,
+      "recall@50": 0.05835,
+      "recall@100": 0.10853,
+      "recall@200": 0.19582,
+      "cold_recall@100": 0.10029,
+      "warm_recall@100": 0.10868
+    },
+    {
+      "mode": "kmeans",
+      "k": 5,
+      "seconds": 23.3,
+      "queries": 76710,
+      "recall@50": 0.05582,
+      "recall@100": 0.10471,
+      "recall@200": 0.19215,
+      "cold_recall@100": 0.09573,
+      "warm_recall@100": 0.10487
+    },
+    {
+      "mode": "kmeans",
+      "k": 8,
+      "seconds": 44.3,
+      "queries": 121538,
+      "recall@50": 0.05224,
+      "recall@100": 0.09953,
+      "recall@200": 0.18453,
+      "cold_recall@100": 0.09783,
+      "warm_recall@100": 0.09956
+    }
+  ],
+  "single_vector": 0.10648,
+  "best": {
+    "mode": "kmeans",
+    "k": 2,
+    "recall@100": 0.11049
+  },
+  "gain_vs_single": 0.0377
+}

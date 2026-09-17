@@ -1,0 +1,177 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "split": "test",
+  "embedding": "contrastive",
+  "k1": 2.0,
+  "b": 1.0,
+  "n_users": 15342,
+  "catalogue": 20738,
+  "runs": [
+    {
+      "days": 1,
+      "universe": 977,
+      "ceiling": 0.96852,
+      "bm25": {
+        "recall@50": 0.08237,
+        "recall@100": 0.15075,
+        "recall@200": 0.27028,
+        "cold_recall@100": 0.13007
+      },
+      "emb": {
+        "recall@50": 0.09575,
+        "recall@100": 0.17044,
+        "recall@200": 0.29453,
+        "cold_recall@100": 0.16519
+      },
+      "random": {
+        "recall@50": 0.0497,
+        "recall@100": 0.09963,
+        "recall@200": 0.19739,
+        "cold_recall@100": 0.09947
+      },
+      "bm25_lift": 1.51,
+      "emb_lift": 1.71,
+      "seconds": 5.3
+    },
+    {
+      "days": 3,
+      "universe": 1247,
+      "ceiling": 0.97342,
+      "bm25": {
+        "recall@50": 0.06362,
+        "recall@100": 0.11789,
+        "recall@200": 0.21542,
+        "cold_recall@100": 0.10341
+      },
+      "emb": {
+        "recall@50": 0.07659,
+        "recall@100": 0.13892,
+        "recall@200": 0.24214,
+        "cold_recall@100": 0.12987
+      },
+      "random": {
+        "recall@50": 0.0392,
+        "recall@100": 0.0792,
+        "recall@200": 0.15565,
+        "cold_recall@100": 0.07597
+      },
+      "bm25_lift": 1.49,
+      "emb_lift": 1.75,
+      "seconds": 6.2
+    },
+    {
+      "days": 7,
+      "universe": 1677,
+      "ceiling": 0.97637,
+      "bm25": {
+        "recall@50": 0.04414,
+        "recall@100": 0.08597,
+        "recall@200": 0.16059,
+        "cold_recall@100": 0.08002
+      },
+      "emb": {
+        "recall@50": 0.0579,
+        "recall@100": 0.10648,
+        "recall@200": 0.19054,
+        "cold_recall@100": 0.0997
+      },
+      "random": {
+        "recall@50": 0.02878,
+        "recall@100": 0.05865,
+        "recall@200": 0.11625,
+        "cold_recall@100": 0.05621
+      },
+      "bm25_lift": 1.47,
+      "emb_lift": 1.82,
+      "seconds": 6.3
+    },
+    {
+      "days": 14,
+      "universe": 2141,
+      "ceiling": 0.97858,
+      "bm25": {
+        "recall@50": 0.03237,
+        "recall@100": 0.06708,
+        "recall@200": 0.12882,
+        "cold_recall@100": 0.06342
+      },
+      "emb": {
+        "recall@50": 0.04704,
+        "recall@100": 0.0878,
+        "recall@200": 0.15831,
+        "cold_recall@100": 0.0817
+      },
+      "random": {
+        "recall@50": 0.02296,
+        "recall@100": 0.04563,
+        "recall@200": 0.09187,
+        "cold_recall@100": 0.04287
+      },
+      "bm25_lift": 1.47,
+      "emb_lift": 1.92,
+      "seconds": 6.7
+    },
+    {
+      "days": 30,
+      "universe": 2534,
+      "ceiling": 0.97991,
+      "bm25": {
+        "recall@50": 0.02862,
+        "recall@100": 0.05944,
+        "recall@200": 0.11427,
+        "cold_recall@100": 0.05979
+      },
+      "emb": {
+        "recall@50": 0.04001,
+        "recall@100": 0.07572,
+        "recall@200": 0.13809,
+        "cold_recall@100": 0.07094
+      },
+      "random": {
+        "recall@50": 0.01954,
+        "recall@100": 0.03865,
+        "recall@200": 0.0777,
+        "cold_recall@100": 0.03637
+      },
+      "bm25_lift": 1.54,
+      "emb_lift": 1.96,
+      "seconds": 7.3
+    },
+    {
+      "days": null,
+      "universe": 20738,
+      "ceiling": 1.0,
+      "bm25": {
+        "recall@50": 0.00842,
+        "recall@100": 0.01713,
+        "recall@200": 0.03247,
+        "cold_recall@100": 0.0166
+      },
+      "emb": {
+        "recall@50": 0.00575,
+        "recall@100": 0.012,
+        "recall@200": 0.02464,
+        "cold_recall@100": 0.01473
+      },
+      "random": {
+        "recall@50": 0.0024,
+        "recall@100": 0.00487,
+        "recall@200": 0.00972,
+        "cold_recall@100": 0.00421
+      },
+      "bm25_lift": 3.52,
+      "emb_lift": 2.46,
+      "seconds": 32.0
+    }
+  ],
+  "shipped": {
+    "days": 7,
+    "universe": 1677,
+    "ceiling": 0.97637
+  },
+  "best_lift": {
+    "days": null,
+    "emb_lift": 2.46
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "split": "test",
+  "embedding": "all-MiniLM-L6-v2",
+  "k1": 2.0,
+  "b": 1.0,
+  "n_users": 50000,
+  "catalogue": 65238,
+  "runs": [
+    {
+      "days": 1,
+      "universe": 5793,
+      "ceiling": 0.87112,
+      "bm25": {
+        "recall@50": 0.03899,
+        "recall@100": 0.05769,
+        "recall@200": 0.09003,
+        "cold_recall@100": 0.03212
+      },
+      "emb": {
+        "recall@50": 0.04603,
+        "recall@100": 0.07722,
+        "recall@200": 0.12911,
+        "cold_recall@100": 0.05061
+      },
+      "random": {
+        "recall@50": 0.00736,
+        "recall@100": 0.0147,
+        "recall@200": 0.02986,
+        "cold_recall@100": 0.01516
+      },
+      "bm25_lift": 3.92,
+      "emb_lift": 5.25,
+      "seconds": 28.0
+    },
+    {
+      "days": 3,
+      "universe": 12671,
+      "ceiling": 0.97044,
+      "bm25": {
+        "recall@50": 0.03582,
+        "recall@100": 0.04941,
+        "recall@200": 0.07009,
+        "cold_recall@100": 0.02937
+      },
+      "emb": {
+        "recall@50": 0.03252,
+        "recall@100": 0.05376,
+        "recall@200": 0.08746,
+        "cold_recall@100": 0.03587
+      },
+      "random": {
+        "recall@50": 0.00388,
+        "recall@100": 0.00774,
+        "recall@200": 0.01498,
+        "cold_recall@100": 0.00886
+      },
+      "bm25_lift": 6.38,
+      "emb_lift": 6.95,
+      "seconds": 54.1
+    },
+    {
+      "days": 7,
+      "universe": 22771,
+      "ceiling": 1.0,
+      "bm25": {
+        "recall@50": 0.02562,
+        "recall@100": 0.03851,
+        "recall@200": 0.05429,
+        "cold_recall@100": 0.02247
+      },
+      "emb": {
+        "recall@50": 0.02007,
+        "recall@100": 0.03569,
+        "recall@200": 0.06022,
+        "cold_recall@100": 0.02453
+      },
+      "random": {
+        "recall@50": 0.00204,
+        "recall@100": 0.00407,
+        "recall@200": 0.00854,
+        "cold_recall@100": 0.00473
+      },
+      "bm25_lift": 9.46,
+      "emb_lift": 8.77,
+      "seconds": 101.9
+    },
+    {
+      "days": 14,
+      "universe": 22771,
+      "ceiling": 1.0,
+      "bm25": {
+        "recall@50": 0.02562,
+        "recall@100": 0.03851,
+        "recall@200": 0.05429,
+        "cold_recall@100": 0.02247
+      },
+      "emb": {
+        "recall@50": 0.02007,
+        "recall@100": 0.03569,
+        "recall@200": 0.06022,
+        "cold_recall@100": 0.02453
+      },
+      "random": {
+        "recall@50": 0.00204,
+        "recall@100": 0.00407,
+        "recall@200": 0.00854,
+        "cold_recall@100": 0.00473
+      },
+      "bm25_lift": 9.46,
+      "emb_lift": 8.77,
+      "seconds": 96.4
+    },
+    {
+      "days": 30,
+      "universe": 22771,
+      "ceiling": 1.0,
+      "bm25": {
+        "recall@50": 0.02562,
+        "recall@100": 0.03851,
+        "recall@200": 0.05429,
+        "cold_recall@100": 0.02247
+      },
+      "emb": {
+        "recall@50": 0.02007,
+        "recall@100": 0.03569,
+        "recall@200": 0.06022,
+        "cold_recall@100": 0.02453
+      },
+      "random": {
+        "recall@50": 0.00204,
+        "recall@100": 0.00407,
+        "recall@200": 0.00854,
+        "cold_recall@100": 0.00473
+      },
+      "bm25_lift": 9.46,
+      "emb_lift": 8.77,
+      "seconds": 100.3
+    },
+    {
+      "days": null,
+      "universe": 65238,
+      "ceiling": 1.0,
+      "bm25": {
+        "recall@50": 0.00854,
+        "recall@100": 0.01505,
+        "recall@200": 0.02579,
+        "cold_recall@100": 0.01251
+      },
+      "emb": {
+        "recall@50": 0.00761,
+        "recall@100": 0.01358,
+        "recall@200": 0.02374,
+        "cold_recall@100": 0.01045
+      },
+      "random": {
+        "recall@50": 0.00079,
+        "recall@100": 0.00149,
+        "recall@200": 0.00289,
+        "cold_recall@100": 0.00202
+      },
+      "bm25_lift": 10.1,
+      "emb_lift": 9.11,
+      "seconds": 239.0
+    }
+  ],
+  "shipped": {
+    "days": 7,
+    "universe": 22771,
+    "ceiling": 1.0
+  },
+  "best_lift": {
+    "days": null,
+    "emb_lift": 9.11
+  }
+}

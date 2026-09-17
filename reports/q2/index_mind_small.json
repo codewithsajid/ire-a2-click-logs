@@ -1,0 +1,89 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "split": "test",
+  "k1": 2.0,
+  "b": 1.0,
+  "has_body": false,
+  "n_users": 50000,
+  "runs": [
+    {
+      "field": "title",
+      "stopwords": true,
+      "stemming": true,
+      "vocab": 24098,
+      "postings": 530324,
+      "avgdl": 8.2,
+      "build_seconds": 0.45,
+      "recall@50": 0.02308,
+      "recall@100": 0.0344,
+      "recall@200": 0.05054,
+      "cold_recall@100": 0.01734,
+      "vs_shipped": -0.1067
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": true,
+      "stemming": true,
+      "vocab": 42707,
+      "postings": 1622643,
+      "avgdl": 30.7,
+      "build_seconds": 1.29,
+      "recall@50": 0.02416,
+      "recall@100": 0.03635,
+      "recall@200": 0.05159,
+      "cold_recall@100": 0.02199,
+      "vs_shipped": -0.0561
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": false,
+      "stemming": true,
+      "vocab": 42737,
+      "postings": 2165968,
+      "avgdl": 43.7,
+      "build_seconds": 1.27,
+      "recall@50": 0.01927,
+      "recall@100": 0.02843,
+      "recall@200": 0.04142,
+      "cold_recall@100": 0.0205,
+      "vs_shipped": -0.2618
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": true,
+      "stemming": false,
+      "vocab": 59350,
+      "postings": 1656840,
+      "avgdl": 30.7,
+      "build_seconds": 1.08,
+      "recall@50": 0.02562,
+      "recall@100": 0.03851,
+      "recall@200": 0.05429,
+      "cold_recall@100": 0.02247,
+      "vs_shipped": 0.0
+    },
+    {
+      "field": "title+abstract",
+      "stopwords": false,
+      "stemming": false,
+      "vocab": 59402,
+      "postings": 2201818,
+      "avgdl": 43.7,
+      "build_seconds": 1.19,
+      "recall@50": 0.02047,
+      "recall@100": 0.02956,
+      "recall@200": 0.04323,
+      "cold_recall@100": 0.02134,
+      "vs_shipped": -0.2324
+    }
+  ],
+  "shipped_recall@100": 0.03851,
+  "best": {
+    "field": "title+abstract",
+    "stopwords": true,
+    "stemming": false,
+    "recall@100": 0.03851,
+    "vs_shipped": 0.0
+  }
+}

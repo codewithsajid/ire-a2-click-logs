@@ -1,0 +1,17 @@
+dataset: mind
+variant: small
+# Official MIND days (parsed with %m/%d/%Y %I:%M:%S %p -- the raw strings sort
+# lexicographically wrong): train 11-09 -> 11-14, dev 11-15, large test 11-16 -> 11-22.
+# Last full day of official train (11-14) becomes `val`; official dev is our `test`.
+# NB: MINDsmall train and dev share only 11.9% of users (independently sampled
+# 50K pools), so cold-start slices must key off history length, not user overlap.
+article_sources: [MINDsmall_train, MINDsmall_dev]
+splits:
+  train:
+    source: MINDsmall_train
+    time_to: 2019-11-14 00:00:00
+  val:
+    source: MINDsmall_train
+    time_from: 2019-11-14 00:00:00
+  test:
+    source: MINDsmall_dev

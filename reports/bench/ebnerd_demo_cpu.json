@@ -1,0 +1,40 @@
+{
+  "dataset": "ebnerd",
+  "variant": "demo",
+  "split": "test",
+  "n_impressions": 25356,
+  "results": {
+    "explode_groupby": {
+      "polars": {
+        "seconds": 0.014,
+        "rows": 20,
+        "peak_rss_mb": 86.6,
+        "gpu_mb": null
+      }
+    },
+    "remap_join": {
+      "polars": {
+        "seconds": 0.025,
+        "rows": 25356,
+        "peak_rss_mb": 134.9,
+        "gpu_mb": null
+      }
+    },
+    "rank_submission": {
+      "polars": {
+        "seconds": 0.287,
+        "rows": 25356,
+        "peak_rss_mb": 160.9,
+        "gpu_mb": null
+      }
+    },
+    "history_agg": {
+      "polars": {
+        "seconds": 0.017,
+        "rows": 20,
+        "peak_rss_mb": 190.7,
+        "gpu_mb": null
+      }
+    }
+  }
+}
