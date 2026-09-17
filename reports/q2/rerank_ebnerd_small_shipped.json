@@ -1,0 +1,411 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "embedding": "contrastive",
+  "objective": "lambdarank",
+  "families": [
+    "user",
+    "article",
+    "match",
+    "context"
+  ],
+  "n_features": 32,
+  "features": [
+    "n_hist",
+    "clicks_24h",
+    "clicks_7d",
+    "hours_since_last_click",
+    "top_category_share",
+    "n_categories",
+    "category_entropy",
+    "prior_read_time",
+    "prior_scroll",
+    "prior_impressions",
+    "ctr_smoothed",
+    "clicks_decayed",
+    "prior_clicks",
+    "prior_inview",
+    "age_hours",
+    "roll_inview",
+    "roll_age_hours",
+    "bm25",
+    "emb_cos",
+    "emb_max",
+    "emb_recent",
+    "cat_share",
+    "cat_clicks",
+    "cat_recency",
+    "cat_recency_share",
+    "session_rank",
+    "session_seconds",
+    "secs_since_prev",
+    "device_type",
+    "is_subscriber",
+    "is_sso_user",
+    "n_candidates"
+  ],
+  "bm25": {
+    "k1": 2.0,
+    "b": 1.0
+  },
+  "n_train_rows": 2226294,
+  "n_test_rows": 2928942,
+  "n_test_impressions": 244647,
+  "best_iteration": 257,
+  "fit_seconds": 18.4,
+  "score_seconds": 0.89,
+  "results": {
+    "emb": {
+      "n_impressions": 244647,
+      "auc": 0.5453,
+      "auc_ci95": [
+        0.54384,
+        0.54655
+      ],
+      "mrr": 0.35215,
+      "mrr_ci95": [
+        0.35076,
+        0.35341
+      ],
+      "mrr_first": 0.35268,
+      "mrr_first_ci95": [
+        0.35132,
+        0.35391
+      ],
+      "ndcg@5": 0.38701,
+      "ndcg@5_ci95": [
+        0.38538,
+        0.38837
+      ],
+      "ndcg@10": 0.46596,
+      "ndcg@10_ci95": [
+        0.46462,
+        0.46709
+      ]
+    },
+    "bm25": {
+      "n_impressions": 244647,
+      "auc": 0.53768,
+      "auc_ci95": [
+        0.53621,
+        0.53894
+      ],
+      "mrr": 0.34793,
+      "mrr_ci95": [
+        0.34656,
+        0.34921
+      ],
+      "mrr_first": 0.34845,
+      "mrr_first_ci95": [
+        0.34708,
+        0.34971
+      ],
+      "ndcg@5": 0.38308,
+      "ndcg@5_ci95": [
+        0.38152,
+        0.38441
+      ],
+      "ndcg@10": 0.46168,
+      "ndcg@10_ci95": [
+        0.46037,
+        0.46279
+      ]
+    },
+    "pop_prior": {
+      "n_impressions": 244647,
+      "auc": 0.44368,
+      "auc_ci95": [
+        0.44313,
+        0.44421
+      ],
+      "mrr": 0.2665,
+      "mrr_ci95": [
+        0.26542,
+        0.26755
+      ],
+      "mrr_first": 0.26686,
+      "mrr_first_ci95": [
+        0.26578,
+        0.26791
+      ],
+      "ndcg@5": 0.29184,
+      "ndcg@5_ci95": [
+        0.29048,
+        0.29313
+      ],
+      "ndcg@10": 0.3883,
+      "ndcg@10_ci95": [
+        0.3872,
+        0.3893
+      ]
+    },
+    "ctr_prior": {
+      "n_impressions": 244647,
+      "auc": 0.42455,
+      "auc_ci95": [
+        0.42394,
+        0.42517
+      ],
+      "mrr": 0.25693,
+      "mrr_ci95": [
+        0.25591,
+        0.25793
+      ],
+      "mrr_first": 0.25728,
+      "mrr_first_ci95": [
+        0.25624,
+        0.25829
+      ],
+      "ndcg@5": 0.27711,
+      "ndcg@5_ci95": [
+        0.2758,
+        0.27838
+      ],
+      "ndcg@10": 0.37822,
+      "ndcg@10_ci95": [
+        0.37712,
+        0.37916
+      ]
+    },
+    "rerank": {
+      "n_impressions": 244647,
+      "auc": 0.73025,
+      "auc_ci95": [
+        0.729,
+        0.73127
+      ],
+      "mrr": 0.4977,
+      "mrr_ci95": [
+        0.4963,
+        0.49895
+      ],
+      "mrr_first": 0.49825,
+      "mrr_first_ci95": [
+        0.49682,
+        0.49949
+      ],
+      "ndcg@5": 0.56149,
+      "ndcg@5_ci95": [
+        0.56,
+        0.56268
+      ],
+      "ndcg@10": 0.60406,
+      "ndcg@10_ci95": [
+        0.60283,
+        0.60511
+      ]
+    }
+  },
+  "importances": [
+    {
+      "feature": "age_hours",
+      "family": "article",
+      "gain": 444916.77711868286,
+      "share": 0.30895472998492235
+    },
+    {
+      "feature": "n_candidates",
+      "family": "context",
+      "gain": 169025.22983932495,
+      "share": 0.11737283674451758
+    },
+    {
+      "feature": "roll_inview",
+      "family": "article",
+      "gain": 144001.35421180725,
+      "share": 0.09999600328873248
+    },
+    {
+      "feature": "roll_age_hours",
+      "family": "article",
+      "gain": 118979.38000583649,
+      "share": 0.08262049019938632
+    },
+    {
+      "feature": "emb_cos",
+      "family": "match",
+      "gain": 100442.86546993256,
+      "share": 0.0697485461913632
+    },
+    {
+      "feature": "emb_max",
+      "family": "match",
+      "gain": 86341.81819343567,
+      "share": 0.059956635708624556
+    },
+    {
+      "feature": "cat_share",
+      "family": "match",
+      "gain": 75065.88614845276,
+      "share": 0.05212651394327533
+    },
+    {
+      "feature": "cat_recency_share",
+      "family": "match",
+      "gain": 41408.44103431702,
+      "share": 0.02875444212669313
+    },
+    {
+      "feature": "bm25",
+      "family": "match",
+      "gain": 38348.81185722351,
+      "share": 0.026629804543042836
+    },
+    {
+      "feature": "device_type",
+      "family": "context",
+      "gain": 27543.451635360718,
+      "share": 0.01912645263225409
+    },
+    {
+      "feature": "emb_recent",
+      "family": "match",
+      "gain": 24155.32900238037,
+      "share": 0.016773705855638345
+    },
+    {
+      "feature": "n_hist",
+      "family": "user",
+      "gain": 22256.487811088562,
+      "share": 0.01545513124188914
+    },
+    {
+      "feature": "category_entropy",
+      "family": "user",
+      "gain": 20637.7273311615,
+      "share": 0.014331047519479364
+    },
+    {
+      "feature": "prior_impressions",
+      "family": "user",
+      "gain": 16494.25702381134,
+      "share": 0.011453779644129209
+    },
+    {
+      "feature": "secs_since_prev",
+      "family": "context",
+      "gain": 14566.048373222351,
+      "share": 0.010114811968297105
+    },
+    {
+      "feature": "cat_clicks",
+      "family": "match",
+      "gain": 14439.759386062622,
+      "share": 0.01002711561263103
+    },
+    {
+      "feature": "cat_recency",
+      "family": "match",
+      "gain": 12799.109253883362,
+      "share": 0.00888783149331818
+    },
+    {
+      "feature": "prior_read_time",
+      "family": "user",
+      "gain": 11728.841608047485,
+      "share": 0.00814462676709448
+    },
+    {
+      "feature": "session_seconds",
+      "family": "context",
+      "gain": 10726.061678886414,
+      "share": 0.007448286196944178
+    },
+    {
+      "feature": "is_sso_user",
+      "family": "context",
+      "gain": 7383.670218467712,
+      "share": 0.005127295611142761
+    },
+    {
+      "feature": "hours_since_last_click",
+      "family": "user",
+      "gain": 7068.257901191711,
+      "share": 0.004908270093721262
+    },
+    {
+      "feature": "top_category_share",
+      "family": "user",
+      "gain": 6809.602798461914,
+      "share": 0.004728657362682823
+    },
+    {
+      "feature": "clicks_7d",
+      "family": "user",
+      "gain": 6460.444809913635,
+      "share": 0.004486198508304229
+    },
+    {
+      "feature": "prior_scroll",
+      "family": "user",
+      "gain": 6037.1352796554565,
+      "share": 0.004192248070049406
+    },
+    {
+      "feature": "session_rank",
+      "family": "context",
+      "gain": 5246.384624481201,
+      "share": 0.003643142781781994
+    },
+    {
+      "feature": "clicks_24h",
+      "family": "user",
+      "gain": 3008.624891281128,
+      "share": 0.0020892196894245745
+    },
+    {
+      "feature": "n_categories",
+      "family": "user",
+      "gain": 2132.239507675171,
+      "share": 0.0014806487757624805
+    },
+    {
+      "feature": "is_subscriber",
+      "family": "context",
+      "gain": 2047.1005878448486,
+      "share": 0.0014215274448975657
+    },
+    {
+      "feature": "ctr_smoothed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "clicks_decayed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_clicks",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_inview",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    }
+  ],
+  "importance_by_family": [
+    {
+      "family": "article",
+      "share": 0.49157122347304116
+    },
+    {
+      "family": "match",
+      "share": 0.2729045954745866
+    },
+    {
+      "family": "context",
+      "share": 0.16425435337983527
+    },
+    {
+      "family": "user",
+      "share": 0.07126982767253696
+    }
+  ]
+}

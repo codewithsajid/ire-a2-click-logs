@@ -1,0 +1,423 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+  "objective": "lambdarank",
+  "families": [
+    "user",
+    "article",
+    "match",
+    "context",
+    "rolling"
+  ],
+  "n_features": 33,
+  "features": [
+    "n_hist",
+    "clicks_24h",
+    "clicks_7d",
+    "hours_since_last_click",
+    "top_category_share",
+    "n_categories",
+    "category_entropy",
+    "prior_read_time",
+    "prior_scroll",
+    "prior_impressions",
+    "ctr_smoothed",
+    "clicks_decayed",
+    "prior_clicks",
+    "prior_inview",
+    "age_hours",
+    "roll_inview",
+    "roll_age_hours",
+    "bm25",
+    "emb_cos",
+    "emb_max",
+    "emb_recent",
+    "cat_share",
+    "cat_clicks",
+    "cat_recency",
+    "cat_recency_share",
+    "session_rank",
+    "session_seconds",
+    "secs_since_prev",
+    "n_candidates",
+    "roll_clicks",
+    "roll_ctr",
+    "art_read_time",
+    "art_dwell_n"
+  ],
+  "bm25": {
+    "k1": 2.0,
+    "b": 1.0
+  },
+  "n_train_rows": 4621015,
+  "n_test_rows": 2740998,
+  "n_test_impressions": 73152,
+  "best_iteration": 156,
+  "fit_seconds": 239.7,
+  "score_seconds": 0.7,
+  "results": {
+    "emb": {
+      "n_impressions": 73152,
+      "auc": 0.63678,
+      "auc_ci95": [
+        0.63471,
+        0.63879
+      ],
+      "mrr": 0.30628,
+      "mrr_ci95": [
+        0.30404,
+        0.30834
+      ],
+      "mrr_first": 0.35126,
+      "mrr_first_ci95": [
+        0.34861,
+        0.35338
+      ],
+      "ndcg@5": 0.33436,
+      "ndcg@5_ci95": [
+        0.33169,
+        0.33664
+      ],
+      "ndcg@10": 0.39379,
+      "ndcg@10_ci95": [
+        0.39144,
+        0.39616
+      ]
+    },
+    "bm25": {
+      "n_impressions": 73152,
+      "auc": 0.57441,
+      "auc_ci95": [
+        0.57221,
+        0.57644
+      ],
+      "mrr": 0.27406,
+      "mrr_ci95": [
+        0.27176,
+        0.27599
+      ],
+      "mrr_first": 0.3165,
+      "mrr_first_ci95": [
+        0.31399,
+        0.31863
+      ],
+      "ndcg@5": 0.29241,
+      "ndcg@5_ci95": [
+        0.28973,
+        0.29466
+      ],
+      "ndcg@10": 0.35361,
+      "ndcg@10_ci95": [
+        0.35112,
+        0.35586
+      ]
+    },
+    "pop_prior": {
+      "n_impressions": 73152,
+      "auc": 0.53312,
+      "auc_ci95": [
+        0.53125,
+        0.53479
+      ],
+      "mrr": 0.23746,
+      "mrr_ci95": [
+        0.23538,
+        0.23928
+      ],
+      "mrr_first": 0.26672,
+      "mrr_first_ci95": [
+        0.26451,
+        0.2686
+      ],
+      "ndcg@5": 0.24659,
+      "ndcg@5_ci95": [
+        0.24397,
+        0.24868
+      ],
+      "ndcg@10": 0.3107,
+      "ndcg@10_ci95": [
+        0.30839,
+        0.31275
+      ]
+    },
+    "ctr_prior": {
+      "n_impressions": 73152,
+      "auc": 0.55817,
+      "auc_ci95": [
+        0.55603,
+        0.56014
+      ],
+      "mrr": 0.25638,
+      "mrr_ci95": [
+        0.25415,
+        0.25832
+      ],
+      "mrr_first": 0.29388,
+      "mrr_first_ci95": [
+        0.29161,
+        0.29599
+      ],
+      "ndcg@5": 0.27305,
+      "ndcg@5_ci95": [
+        0.27038,
+        0.27523
+      ],
+      "ndcg@10": 0.33312,
+      "ndcg@10_ci95": [
+        0.33063,
+        0.33533
+      ]
+    },
+    "rerank": {
+      "n_impressions": 73152,
+      "auc": 0.699,
+      "auc_ci95": [
+        0.697,
+        0.701
+      ],
+      "mrr": 0.35024,
+      "mrr_ci95": [
+        0.34778,
+        0.35235
+      ],
+      "mrr_first": 0.40808,
+      "mrr_first_ci95": [
+        0.40535,
+        0.41042
+      ],
+      "ndcg@5": 0.38876,
+      "ndcg@5_ci95": [
+        0.38605,
+        0.39123
+      ],
+      "ndcg@10": 0.44953,
+      "ndcg@10_ci95": [
+        0.44704,
+        0.45174
+      ]
+    }
+  },
+  "importances": [
+    {
+      "feature": "roll_ctr",
+      "family": "rolling",
+      "gain": 378723.0715665817,
+      "share": 0.3299416294857314
+    },
+    {
+      "feature": "emb_cos",
+      "family": "match",
+      "gain": 189849.04136180878,
+      "share": 0.16539552714365566
+    },
+    {
+      "feature": "emb_max",
+      "family": "match",
+      "gain": 126559.13381195068,
+      "share": 0.1102576789512455
+    },
+    {
+      "feature": "roll_inview",
+      "family": "article",
+      "gain": 96658.13713169098,
+      "share": 0.08420808147854991
+    },
+    {
+      "feature": "n_candidates",
+      "family": "context",
+      "gain": 79524.33867645264,
+      "share": 0.06928120269554557
+    },
+    {
+      "feature": "roll_clicks",
+      "family": "rolling",
+      "gain": 51018.51613712311,
+      "share": 0.044447073896492516
+    },
+    {
+      "feature": "n_hist",
+      "family": "user",
+      "gain": 37563.89736747742,
+      "share": 0.032725477896007604
+    },
+    {
+      "feature": "age_hours",
+      "family": "article",
+      "gain": 35365.45018005371,
+      "share": 0.030810201796359214
+    },
+    {
+      "feature": "roll_age_hours",
+      "family": "article",
+      "gain": 35185.89635658264,
+      "share": 0.030653775411107892
+    },
+    {
+      "feature": "cat_share",
+      "family": "match",
+      "gain": 33837.30497455597,
+      "share": 0.02947888940203604
+    },
+    {
+      "feature": "emb_recent",
+      "family": "match",
+      "gain": 29963.309629440308,
+      "share": 0.026103884199684943
+    },
+    {
+      "feature": "bm25",
+      "family": "match",
+      "gain": 23243.65999507904,
+      "share": 0.020249759335405113
+    },
+    {
+      "feature": "cat_recency_share",
+      "family": "match",
+      "gain": 14042.752098083496,
+      "share": 0.012233974789389835
+    },
+    {
+      "feature": "top_category_share",
+      "family": "user",
+      "gain": 3688.695301055908,
+      "share": 0.00321357273870964
+    },
+    {
+      "feature": "cat_clicks",
+      "family": "match",
+      "gain": 3529.7702865600586,
+      "share": 0.0030751180677758
+    },
+    {
+      "feature": "cat_recency",
+      "family": "match",
+      "gain": 3433.4521055221558,
+      "share": 0.002991206154331255
+    },
+    {
+      "feature": "category_entropy",
+      "family": "user",
+      "gain": 3347.056703567505,
+      "share": 0.0029159389159687226
+    },
+    {
+      "feature": "n_categories",
+      "family": "user",
+      "gain": 2315.219606399536,
+      "share": 0.0020170076420033493
+    },
+    {
+      "feature": "clicks_24h",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "clicks_7d",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "hours_since_last_click",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_read_time",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_scroll",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_impressions",
+      "family": "user",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "ctr_smoothed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "clicks_decayed",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_clicks",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "prior_inview",
+      "family": "article",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "session_rank",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "session_seconds",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "secs_since_prev",
+      "family": "context",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "art_read_time",
+      "family": "rolling",
+      "gain": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "art_dwell_n",
+      "family": "rolling",
+      "gain": 0.0,
+      "share": 0.0
+    }
+  ],
+  "importance_by_family": [
+    {
+      "family": "rolling",
+      "share": 0.3743887033822239
+    },
+    {
+      "family": "match",
+      "share": 0.36978603804352417
+    },
+    {
+      "family": "article",
+      "share": 0.14567205868601701
+    },
+    {
+      "family": "context",
+      "share": 0.06928120269554557
+    },
+    {
+      "family": "user",
+      "share": 0.040871997192689316
+    }
+  ]
+}

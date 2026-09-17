@@ -25,7 +25,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXCLUDES=(--exclude .git --exclude .venv --exclude data --exclude artifacts
           --exclude external --exclude logs --exclude __pycache__
           --exclude '.pytest_cache' --exclude '*.parquet' --exclude '*.npy'
-          --exclude '*.zip' --exclude '*.faiss')
+          --exclude '*.zip' --exclude '*.faiss'
+          # Results are produced on the far side. Without this, `--delete` on a
+          # push removes every JSON the last run wrote, because it is not in the
+          # local tree -- which silently emptied the Q1 report once.
+          --filter='P reports/**')
 
 case "${1:-push}" in
   push)
