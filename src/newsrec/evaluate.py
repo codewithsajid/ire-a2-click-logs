@@ -255,3 +255,71 @@ def rank_profile(first_rel: np.ndarray, cap: int = 40) -> list[int]:
     v = v[~np.isnan(v)].astype(np.int64)
     h = np.bincount(np.clip(v, 1, cap + 1), minlength=cap + 2)[1:cap + 2]
     return [int(x) for x in h]
+
+
+def paired_bootstrap(a: np.ndarray, b: np.ndarray, n_boot: int = 1000,
+                     alpha: float = 0.05, seed: int = 0,
+                     max_cells: int = 2 ** 25) -> dict:
+    """Bootstrap CI for the *difference* b - a, resampling impressions jointly.
+
+    The assignment requires a paired bootstrap for any claimed gain, and paired
+    is not a detail. Two independent CIs on two systems measured over the same
+    impressions overstate the uncertainty of their difference, because the
+    impression-to-impression variance -- some impressions are simply easier --
+    is common to both and cancels. Resampling the same impression indices for
+    both systems is what makes it cancel.
+
+    Returns the mean delta, its CI, the share of resamples favouring `b`, and
+    whether the interval excludes zero, which is the test the spec asks for.
+
+    `a` and `b` must be per-impression values in the same order, NaN-aligned:
+    an impression where either system's metric is undefined (AUC on a list with
+    no negatives, say) is dropped from the pair rather than scored as zero.
+    """
+    x = np.asarray(a, dtype=np.float64)
+    y = np.asarray(b, dtype=np.float64)
+    if x.shape != y.shape:
+        raise ValueError(f"paired bootstrap needs aligned arrays, got {x.shape} vs {y.shape}")
+    keep = ~(np.isnan(x) | np.isnan(y))
+    x, y = x[keep], y[keep]
+    n = x.size
+    if n == 0:
+        return {"n": 0, "delta": float("nan"), "ci95": [float("nan")] * 2,
+                "excludes_zero": False, "p_better": float("nan")}
+
+    d = y - x
+    rng = np.random.default_rng(seed)
+    means = np.empty(n_boot, dtype=np.float64)
+    block = max(1, min(n_boot, max_cells // max(n, 1)))
+    for s in range(0, n_boot, block):
+        m = min(block, n_boot - s)
+        idx = rng.integers(0, n, size=(m, n))
+        means[s:s + m] = d[idx].mean(axis=1)
+    lo, hi = np.quantile(means, alpha / 2), np.quantile(means, 1 - alpha / 2)
+    return {
+        "n": int(n),
+        "baseline": float(x.mean()),
+        "candidate": float(y.mean()),
+        "delta": float(d.mean()),
+        "ci95": [float(lo), float(hi)],
+        "excludes_zero": bool(lo > 0 or hi < 0),
+        "p_better": float((means > 0).mean()),
+    }
+
+
+def paired_report(per_imp_a: pl.DataFrame, per_imp_b: pl.DataFrame,
+                  metrics: tuple[str, ...] = METRICS, n_boot: int = 1000,
+                  key: str = "imp") -> dict:
+    """Paired bootstrap across every metric, joined on impression id.
+
+    Joining rather than assuming row alignment: the two tables come from separate
+    `rank_metrics` calls and a filter applied to one and not the other would
+    otherwise silently compare different impressions.
+    """
+    j = per_imp_a.join(per_imp_b, on=key, how="inner", suffix="_b")
+    out = {"n_impressions": j.height}
+    for m in metrics:
+        if m not in per_imp_a.columns or f"{m}_b" not in j.columns:
+            continue
+        out[m] = paired_bootstrap(j[m].to_numpy(), j[f"{m}_b"].to_numpy(), n_boot=n_boot)
+    return out

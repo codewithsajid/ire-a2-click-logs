@@ -203,12 +203,21 @@ def main() -> None:
     sweep = {}
     ranked = honest.with_columns(
         pl.col("stage1_score").rank("ordinal", descending=True).over("imp").alias("_r"))
-    best = "shown" if "shown" in models else "retrieved+union"
+    # The sweep is a cascade measurement, so it uses the model trained on the
+    # cascade's own candidate distribution. Scoring it with the shown-trained
+    # model would measure the train/serve mismatch, not the effect of K.
+    best = ("retrieved-only" if "retrieved-only" in models
+            else next(iter(models)))
     for k in [int(x) for x in a.k_sweep.split(",") if int(x) <= a.k]:
         sub = ranked.filter(pl.col("_r") <= k)
+        # recall@K: the funnel's upstream duty, and the ceiling on every
+        # downstream number at this K
+        rec = stage1_recall(sub, fs, "test")
         sweep[k] = {
             "n_rows": sub.height,
             "trained_on": best,
+            "stage1_recall": rec["recall"],
+            "impressions_missed": rec["impressions_with_no_positive_retrieved"],
             "stage1_order": ev(sub, sub["stage1_score"].to_numpy(), a.n_boot),
             "rerank": ev(sub, predict(models[best], sub, feats), a.n_boot),
         }
@@ -249,9 +258,11 @@ def main() -> None:
     print(f"\n   [diagnostic] same models on the union'd set -- the illusion:")
     for n, r in diagnostic.items():
         print(f"   {n:<26} {r['auc']:>8.4f} {r['mrr']:>8.4f} {r['ndcg@5']:>8.4f} {r['ndcg@10']:>8.4f}")
-    print(f"\n   K sweep (cascade nDCG@10):  " +
-          "  ".join(f"K={k}: {v['stage1_order']['ndcg@10']:.4f}->{v['rerank']['ndcg@10']:.4f}"
-                    for k, v in sweep.items()))
+    print(f"\n   K sweep -- Q2.1 range, cascade trained on {best}")
+    print(f"   {'K':>5} {'recall@K':>10} {'missed':>8} {'nDCG@10 before':>15} {'after':>8}")
+    for k, v in sweep.items():
+        print(f"   {k:>5} {v['stage1_recall']:>10.4f} {v['impressions_missed']:>8.1%} "
+              f"{v['stage1_order']['ndcg@10']:>15.4f} {v['rerank']['ndcg@10']:>8.4f}")
     if "in_impression" in out:
         print(f"\n   IN-IMPRESSION (shown lists -- the leaderboard's question)")
         print(f"   {'':<26} {'AUC':>8} {'MRR':>8} {'nDCG@5':>8} {'nDCG@10':>8}")

@@ -239,7 +239,8 @@ def train(train_df: pl.DataFrame, val_df: pl.DataFrame, features: list[str],
           learning_rate: float = 0.05, num_leaves: int = 63,
           min_data_in_leaf: int = 50, early_stopping: int = 50,
           weights: np.ndarray | None = None, seed: int = 0,
-          ndcg_eval_at: tuple[int, ...] = (5, 10), verbose_eval: int = 50):
+          ndcg_eval_at: tuple[int, ...] = (5, 10), verbose_eval: int = 50,
+          truncation: int = 30):
     """Fit a LightGBM ranker, early-stopped on the validation split.
 
     `objective` spans the pointwise -> pairwise -> listwise arc on one flag:
@@ -269,24 +270,30 @@ def train(train_df: pl.DataFrame, val_df: pl.DataFrame, features: list[str],
         "num_threads": 0,
         "verbosity": -1,
     }
-    if objective in ("lambdarank", "rank_xendcg"):
-        params |= {"metric": "ndcg", "ndcg_eval_at": list(ndcg_eval_at),
-                   "lambdarank_truncation_level": 30}
-    else:
-        params |= {"metric": "auc"}
+    # Early stopping always watches nDCG, whatever the objective optimises.
+    # Letting the stopping rule change with the objective confounds the
+    # comparison between them: a pointwise run stopped on AUC and a listwise run
+    # stopped on nDCG differ in two things at once, and on MIND that showed up as
+    # 148 trees against 13. Groups are set for every objective so the ranking
+    # metric is computable even when the loss is pointwise.
+    params |= {"metric": "ndcg", "ndcg_eval_at": list(ndcg_eval_at)}
+    if objective == "lambdarank":
+        # How deep into each list LambdaRank forms pairs. Beyond it, a swap
+        # contributes no gradient at all -- so a truncation shorter than the list
+        # leaves part of every impression untrained. EB-NeRD shows ~11 candidates
+        # and fits inside the default; MIND shows ~36 and up to 299 and does not.
+        params |= {"lambdarank_truncation_level": truncation}
 
     X = train_df.select(features).to_numpy()
     y = train_df["label"].to_numpy().astype(np.int8)
     dtrain = lgb.Dataset(X, label=y, feature_name=features, weight=weights,
                          free_raw_data=False)
-    if objective in ("lambdarank", "rank_xendcg"):
-        dtrain.set_group(_groups(train_df))
+    dtrain.set_group(_groups(train_df))
 
     Xv = val_df.select(features).to_numpy()
     dval = lgb.Dataset(Xv, label=val_df["label"].to_numpy().astype(np.int8),
                        feature_name=features, reference=dtrain, free_raw_data=False)
-    if objective in ("lambdarank", "rank_xendcg"):
-        dval.set_group(_groups(val_df))
+    dval.set_group(_groups(val_df))
 
     return lgb.train(
         params, dtrain, num_boost_round=num_boost_round,

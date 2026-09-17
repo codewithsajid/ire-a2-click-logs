@@ -26,10 +26,12 @@ EXCLUDES=(--exclude .git --exclude .venv --exclude data --exclude artifacts
           --exclude external --exclude logs --exclude __pycache__
           --exclude '.pytest_cache' --exclude '*.parquet' --exclude '*.npy'
           --exclude '*.zip' --exclude '*.faiss'
-          # Results are produced on the far side. Without this, `--delete` on a
-          # push removes every JSON the last run wrote, because it is not in the
-          # local tree -- which silently emptied the Q1 report once.
-          --filter='P reports/**')
+          # Results are produced on the far side and pulled back for reading, so
+          # a push must not touch reports/ at all. Two failure modes, both hit:
+          # `--delete` removed every JSON the last run wrote (they are not in the
+          # local tree), and once pulled, a later push copied the stale local
+          # snapshot back over fresher remote results.
+          --exclude reports)
 
 case "${1:-push}" in
   push)
