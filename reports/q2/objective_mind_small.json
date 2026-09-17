@@ -37,15 +37,15 @@
   "fitted": {
     "binary": {
       "trees": 73,
-      "fit_seconds": 7.2
+      "fit_seconds": 11.7
     },
     "rank_xendcg": {
       "trees": 86,
-      "fit_seconds": 17.8
+      "fit_seconds": 10.6
     },
     "lambdarank": {
       "trees": 13,
-      "fit_seconds": 9.7
+      "fit_seconds": 8.1
     }
   },
   "summary": {

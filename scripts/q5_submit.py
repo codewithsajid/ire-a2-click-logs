@@ -76,6 +76,7 @@ def score_submit_chunked(fs, model, feats, emb, k1, b, chunk: int,
     is kept per slot -- the feature row that produced it is 30x larger and is
     never needed again.
     """
+    out_dir.mkdir(parents=True, exist_ok=True)
     n_imp = fs.impressions("submit").select(pl.len()).collect().item()
     print(f"   submit split: {n_imp:,} impressions, chunk {chunk:,}")
     parts = []

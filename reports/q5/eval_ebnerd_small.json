@@ -1,0 +1,495 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "embedding": "contrastive",
+  "cold_definition": {
+    "fixed_threshold": 5,
+    "impressions_under_fixed_threshold": 0,
+    "history_p10": 34.0,
+    "threshold_used": 34.0,
+    "note": "fixed threshold kept where it splits; widened to the history p10 where it would leave the slice empty"
+  },
+  "head_quantile": 0.8,
+  "head_exposure_threshold": 2645.0,
+  "arms": {
+    "content": [
+      "bm25",
+      "emb_cos",
+      "emb_max",
+      "emb_recent",
+      "cat_share",
+      "cat_clicks",
+      "cat_recency",
+      "cat_recency_share",
+      "age_hours",
+      "roll_age_hours"
+    ],
+    "article_log": [
+      "ctr_smoothed",
+      "clicks_decayed",
+      "prior_clicks",
+      "prior_inview",
+      "roll_inview"
+    ]
+  },
+  "overall": {
+    "shipped": {
+      "n_impressions": 244647,
+      "auc": 0.73025,
+      "auc_ci95": [
+        0.729,
+        0.73127
+      ],
+      "mrr": 0.4977,
+      "mrr_ci95": [
+        0.4963,
+        0.49895
+      ],
+      "mrr_first": 0.49825,
+      "mrr_first_ci95": [
+        0.49682,
+        0.49949
+      ],
+      "ndcg@5": 0.56149,
+      "ndcg@5_ci95": [
+        0.56,
+        0.56268
+      ],
+      "ndcg@10": 0.60406,
+      "ndcg@10_ci95": [
+        0.60283,
+        0.60511
+      ],
+      "ild@10": 0.763361288790584,
+      "novelty@10": 36.623869500345855,
+      "coverage@10": 0.1995370816857942,
+      "n_lists": 244647
+    },
+    "content-only": {
+      "n_impressions": 244647,
+      "auc": 0.70777,
+      "auc_ci95": [
+        0.70647,
+        0.70883
+      ],
+      "mrr": 0.47599,
+      "mrr_ci95": [
+        0.47454,
+        0.47725
+      ],
+      "mrr_first": 0.47655,
+      "mrr_first_ci95": [
+        0.47512,
+        0.47779
+      ],
+      "ndcg@5": 0.53674,
+      "ndcg@5_ci95": [
+        0.53525,
+        0.53803
+      ],
+      "ndcg@10": 0.58189,
+      "ndcg@10_ci95": [
+        0.58058,
+        0.58294
+      ],
+      "ild@10": 0.7556925585959056,
+      "novelty@10": 36.771972116297036,
+      "coverage@10": 0.1959687530137911,
+      "n_lists": 244647
+    },
+    "article-log-only": {
+      "n_impressions": 244647,
+      "auc": 0.62512,
+      "auc_ci95": [
+        0.62377,
+        0.62624
+      ],
+      "mrr": 0.39495,
+      "mrr_ci95": [
+        0.39356,
+        0.39623
+      ],
+      "mrr_first": 0.39542,
+      "mrr_first_ci95": [
+        0.39402,
+        0.39672
+      ],
+      "ndcg@5": 0.44864,
+      "ndcg@5_ci95": [
+        0.4471,
+        0.44994
+      ],
+      "ndcg@10": 0.5106,
+      "ndcg@10_ci95": [
+        0.50932,
+        0.51172
+      ],
+      "ild@10": 0.7722993470566776,
+      "novelty@10": 36.19605236645334,
+      "coverage@10": 0.20378049956601407,
+      "n_lists": 244647
+    }
+  },
+  "slices": {
+    "cold": {
+      "n_impressions": 25105,
+      "shipped": {
+        "n_impressions": 25105,
+        "auc": 0.72873,
+        "auc_ci95": [
+          0.72514,
+          0.7322
+        ],
+        "mrr": 0.48276,
+        "mrr_ci95": [
+          0.47832,
+          0.48673
+        ],
+        "mrr_first": 0.48331,
+        "mrr_first_ci95": [
+          0.47893,
+          0.48734
+        ],
+        "ndcg@5": 0.54492,
+        "ndcg@5_ci95": [
+          0.54005,
+          0.54907
+        ],
+        "ndcg@10": 0.58982,
+        "ndcg@10_ci95": [
+          0.58602,
+          0.59322
+        ]
+      },
+      "content-only": {
+        "n_impressions": 25105,
+        "auc": 0.70753,
+        "auc_ci95": [
+          0.70374,
+          0.71112
+        ],
+        "mrr": 0.46669,
+        "mrr_ci95": [
+          0.46228,
+          0.47056
+        ],
+        "mrr_first": 0.46724,
+        "mrr_first_ci95": [
+          0.46278,
+          0.47113
+        ],
+        "ndcg@5": 0.52506,
+        "ndcg@5_ci95": [
+          0.52019,
+          0.52914
+        ],
+        "ndcg@10": 0.57193,
+        "ndcg@10_ci95": [
+          0.56791,
+          0.57541
+        ]
+      },
+      "article-log-only": {
+        "n_impressions": 25105,
+        "auc": 0.63333,
+        "auc_ci95": [
+          0.6293,
+          0.63711
+        ],
+        "mrr": 0.39391,
+        "mrr_ci95": [
+          0.39007,
+          0.39754
+        ],
+        "mrr_first": 0.39439,
+        "mrr_first_ci95": [
+          0.39053,
+          0.39796
+        ],
+        "ndcg@5": 0.44444,
+        "ndcg@5_ci95": [
+          0.43984,
+          0.44868
+        ],
+        "ndcg@10": 0.50532,
+        "ndcg@10_ci95": [
+          0.50167,
+          0.50875
+        ]
+      }
+    },
+    "warm": {
+      "n_impressions": 219542,
+      "shipped": {
+        "n_impressions": 219542,
+        "auc": 0.73042,
+        "auc_ci95": [
+          0.72921,
+          0.73153
+        ],
+        "mrr": 0.49941,
+        "mrr_ci95": [
+          0.49788,
+          0.50083
+        ],
+        "mrr_first": 0.49996,
+        "mrr_first_ci95": [
+          0.49842,
+          0.50138
+        ],
+        "ndcg@5": 0.56339,
+        "ndcg@5_ci95": [
+          0.56185,
+          0.56468
+        ],
+        "ndcg@10": 0.60568,
+        "ndcg@10_ci95": [
+          0.60437,
+          0.60686
+        ]
+      },
+      "content-only": {
+        "n_impressions": 219542,
+        "auc": 0.70779,
+        "auc_ci95": [
+          0.70653,
+          0.70893
+        ],
+        "mrr": 0.47705,
+        "mrr_ci95": [
+          0.47547,
+          0.47845
+        ],
+        "mrr_first": 0.47762,
+        "mrr_first_ci95": [
+          0.47601,
+          0.47903
+        ],
+        "ndcg@5": 0.53807,
+        "ndcg@5_ci95": [
+          0.53646,
+          0.53941
+        ],
+        "ndcg@10": 0.58303,
+        "ndcg@10_ci95": [
+          0.58172,
+          0.58427
+        ]
+      },
+      "article-log-only": {
+        "n_impressions": 219542,
+        "auc": 0.62418,
+        "auc_ci95": [
+          0.62285,
+          0.6254
+        ],
+        "mrr": 0.39507,
+        "mrr_ci95": [
+          0.39367,
+          0.39641
+        ],
+        "mrr_first": 0.39554,
+        "mrr_first_ci95": [
+          0.39414,
+          0.39685
+        ],
+        "ndcg@5": 0.44912,
+        "ndcg@5_ci95": [
+          0.44757,
+          0.45049
+        ],
+        "ndcg@10": 0.5112,
+        "ndcg@10_ci95": [
+          0.50995,
+          0.51238
+        ]
+      }
+    },
+    "head": {
+      "n_impressions": 49121,
+      "shipped": {
+        "n_impressions": 49121,
+        "auc": 0.71656,
+        "auc_ci95": [
+          0.71434,
+          0.71876
+        ],
+        "mrr": 0.43919,
+        "mrr_ci95": [
+          0.43631,
+          0.44213
+        ],
+        "mrr_first": 0.43974,
+        "mrr_first_ci95": [
+          0.4368,
+          0.4427
+        ],
+        "ndcg@5": 0.48274,
+        "ndcg@5_ci95": [
+          0.47959,
+          0.48592
+        ],
+        "ndcg@10": 0.53738,
+        "ndcg@10_ci95": [
+          0.5348,
+          0.54009
+        ]
+      },
+      "content-only": {
+        "n_impressions": 49121,
+        "auc": 0.70249,
+        "auc_ci95": [
+          0.70014,
+          0.7048
+        ],
+        "mrr": 0.43981,
+        "mrr_ci95": [
+          0.43676,
+          0.44264
+        ],
+        "mrr_first": 0.44043,
+        "mrr_first_ci95": [
+          0.43728,
+          0.4433
+        ],
+        "ndcg@5": 0.47598,
+        "ndcg@5_ci95": [
+          0.47255,
+          0.47914
+        ],
+        "ndcg@10": 0.526,
+        "ndcg@10_ci95": [
+          0.52314,
+          0.52864
+        ]
+      },
+      "article-log-only": {
+        "n_impressions": 49121,
+        "auc": 0.52501,
+        "auc_ci95": [
+          0.52235,
+          0.52772
+        ],
+        "mrr": 0.28998,
+        "mrr_ci95": [
+          0.28744,
+          0.29245
+        ],
+        "mrr_first": 0.29042,
+        "mrr_first_ci95": [
+          0.28785,
+          0.2929
+        ],
+        "ndcg@5": 0.29872,
+        "ndcg@5_ci95": [
+          0.29576,
+          0.30169
+        ],
+        "ndcg@10": 0.38146,
+        "ndcg@10_ci95": [
+          0.37869,
+          0.38404
+        ]
+      }
+    },
+    "tail": {
+      "n_impressions": 195526,
+      "shipped": {
+        "n_impressions": 195526,
+        "auc": 0.73369,
+        "auc_ci95": [
+          0.73243,
+          0.73491
+        ],
+        "mrr": 0.5124,
+        "mrr_ci95": [
+          0.51079,
+          0.51378
+        ],
+        "mrr_first": 0.51295,
+        "mrr_first_ci95": [
+          0.51133,
+          0.51435
+        ],
+        "ndcg@5": 0.58128,
+        "ndcg@5_ci95": [
+          0.57966,
+          0.58261
+        ],
+        "ndcg@10": 0.62081,
+        "ndcg@10_ci95": [
+          0.61944,
+          0.62204
+        ]
+      },
+      "content-only": {
+        "n_impressions": 195526,
+        "auc": 0.70909,
+        "auc_ci95": [
+          0.70779,
+          0.71031
+        ],
+        "mrr": 0.48508,
+        "mrr_ci95": [
+          0.48348,
+          0.48643
+        ],
+        "mrr_first": 0.48563,
+        "mrr_first_ci95": [
+          0.48401,
+          0.48696
+        ],
+        "ndcg@5": 0.552,
+        "ndcg@5_ci95": [
+          0.55042,
+          0.55332
+        ],
+        "ndcg@10": 0.59593,
+        "ndcg@10_ci95": [
+          0.59458,
+          0.59711
+        ]
+      },
+      "article-log-only": {
+        "n_impressions": 195526,
+        "auc": 0.65027,
+        "auc_ci95": [
+          0.64891,
+          0.65153
+        ],
+        "mrr": 0.42133,
+        "mrr_ci95": [
+          0.4198,
+          0.42272
+        ],
+        "mrr_first": 0.4218,
+        "mrr_first_ci95": [
+          0.42025,
+          0.42321
+        ],
+        "ndcg@5": 0.4863,
+        "ndcg@5_ci95": [
+          0.48466,
+          0.48768
+        ],
+        "ndcg@10": 0.54304,
+        "ndcg@10_ci95": [
+          0.54169,
+          0.54418
+        ]
+      }
+    }
+  },
+  "head_tail_verdict": {
+    "head": {
+      "content_auc": 0.70249,
+      "article_log_auc": 0.52501,
+      "article_log_wins": false
+    },
+    "tail": {
+      "content_auc": 0.70909,
+      "article_log_auc": 0.65027,
+      "article_log_wins": false
+    }
+  }
+}

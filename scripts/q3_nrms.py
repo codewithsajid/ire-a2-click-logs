@@ -120,6 +120,17 @@ def train_nrms(tr, va, emb_t, hist_tr, hist_va, args, device, extra_dim, stats,
     model = NRMS(doc_dim=emb_t.shape[1], extra_dim=extra_dim,
                  extra_mode=args.extra_mode).to(device)
     groups = l2_groups(model, 1e-4)
+    if extra_dim and model.alpha is not None and args.alpha_lr_mult != 1.0:
+        # alpha is a single scalar that sets how much the bounded head may
+        # contribute at all, and it starts at zero. At the tower's learning rate
+        # it cannot reach its scale inside a dozen epochs -- which showed up as
+        # the bounded head *underfitting* EB-NeRD (-0.0053) exactly where the
+        # unbounded one overfit MIND. One parameter can afford a faster rate.
+        gid = id(model.alpha)
+        for g in groups:
+            g["params"] = [q for q in g["params"] if id(q) != gid]
+        groups.append({"params": [model.alpha], "weight_decay": 0.0,
+                       "lr": args.lr * args.alpha_lr_mult})
     if extra_dim and extra_lr_mult != 1.0:
         # Control for "is the freshness head failing to help, or failing to
         # optimise". The head is a shortcut branch: it can fit the 1+4 training
@@ -217,6 +228,9 @@ def main() -> None:
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--extra-mode", default="bounded", choices=["add", "bounded"],
                     help="how the freshness head enters the score")
+    ap.add_argument("--alpha-lr-mult", type=float, default=50.0,
+                    help="learning-rate multiplier for the bounded head's scale "
+                         "scalar; it is one parameter starting at zero")
     ap.add_argument("--extra-lr-mult", type=float, default=1.0,
                     help="learning-rate multiplier for the freshness head only")
     ap.add_argument("--out", type=Path, default=Path("reports/q3"))
@@ -277,7 +291,8 @@ def main() -> None:
                        "batch": a.batch, "epochs": a.epochs, "heads": 16,
                        "head_dim": 16, "attn_hidden": 200, "dropout": 0.2,
                        "units": [512, 512, 512], "l2_newsencoder": 1e-4,
-                       "extra_mode": a.extra_mode},
+                       "extra_mode": a.extra_mode,
+                       "alpha_lr_mult": a.alpha_lr_mult},
            "extra_features": list(EXTRA),
            "train_seconds": timing, "results": results,
            "paired_improvement": paired}
