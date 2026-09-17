@@ -30,7 +30,7 @@ import polars as pl
 
 from newsrec.behaviour import assemble
 from newsrec.evaluate import rank_metrics, summarise_ranking
-from newsrec.rerank import (FAMILIES, SHIPPED, add_matching_features,
+from newsrec.rerank import (FAMILIES, PRODUCTION, SHIPPED, add_matching_features,
                             feature_names, importances, predict, train)
 from newsrec.store import FeatureStore
 

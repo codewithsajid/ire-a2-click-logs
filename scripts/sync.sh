@@ -12,6 +12,10 @@
 set -euo pipefail
 
 HOST="${A2_HOST:-gvlab2}"
+# The campus resolver intermittently fails on *.iiit.ac.in while the hosts stay
+# reachable, so the address can be pinned without editing ~/.ssh/config.
+SSH_OPTS=()
+[ -n "${A2_IP:-}" ] && SSH_OPTS+=(-o "HostName=$A2_IP")
 REMOTE="${A2_REMOTE:-ire_a2}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -25,18 +29,18 @@ EXCLUDES=(--exclude .git --exclude .venv --exclude data --exclude artifacts
 
 case "${1:-push}" in
   push)
-    rsync -az --delete "${EXCLUDES[@]}" "$HERE/" "$HOST:$REMOTE/"
+    rsync -az --delete -e "ssh ${SSH_OPTS[*]}" "${EXCLUDES[@]}" "$HERE/" "$HOST:$REMOTE/"
     echo "pushed -> $HOST:$REMOTE"
     ;;
   pull)
-    rsync -az --exclude '*.npy' --exclude '*.parquet' \
+    rsync -az -e "ssh ${SSH_OPTS[*]}" --exclude '*.npy' --exclude '*.parquet' \
           "$HOST:$REMOTE/reports/" "$HERE/reports/"
     echo "pulled reports/ <- $HOST:$REMOTE"
     ;;
   run)
     shift
-    rsync -az --delete "${EXCLUDES[@]}" "$HERE/" "$HOST:$REMOTE/"
-    ssh "$HOST" "bash -lc 'cd $REMOTE && $*'"
+    rsync -az --delete -e "ssh ${SSH_OPTS[*]}" "${EXCLUDES[@]}" "$HERE/" "$HOST:$REMOTE/"
+    ssh "${SSH_OPTS[@]}" "$HOST" "bash -lc 'cd $REMOTE && $*'"
     ;;
   *)
     echo "usage: $0 {push|pull|run <cmd>}" >&2; exit 2

@@ -49,10 +49,27 @@ FAMILIES: dict[str, tuple[str, ...]] = {
     "user": (
         "n_hist", "clicks_24h", "clicks_7d", "hours_since_last_click",
         "top_category_share", "n_categories", "category_entropy",
+        # dwell, aggregated over impressions that closed before this one -- the
+        # serving-safe half of EB-NeRD's read_time (null on MIND)
+        "prior_read_time", "prior_scroll", "prior_impressions",
     ),
     "article": (
         "ctr_smoothed", "clicks_decayed", "prior_clicks", "prior_inview",
         "age_hours",
+        # rolling exposure count and in-split age. Both are computable on an
+        # unlabelled split -- candidate lists are published -- so both may ship
+        # to the leaderboard.
+        "roll_inview", "roll_age_hours",
+    ),
+    # Counters that need in-split *labels*. A production feature store has these
+    # (a click an hour ago is in the log); the Codabench test set withholds them
+    # by construction. So they are built, measured, and reported as "what the
+    # system can do with a live log" -- never folded into a submission.
+    "rolling": (
+        "roll_clicks", "roll_ctr",
+        # the dwell an article earned before this impression: the one signal that
+        # separates "attracted a click" from "held attention"
+        "art_read_time", "art_dwell_n",
     ),
     "match": (
         "bm25", "emb_cos", "emb_max", "emb_recent",
@@ -67,7 +84,14 @@ FAMILIES: dict[str, tuple[str, ...]] = {
     "grey": ("read_time", "scroll_percentage", "position", "position_frac"),
 }
 
+# What goes to Codabench: every family whose features can be computed on a split
+# with no labels in it.
 SHIPPED = ("user", "article", "match", "context")
+
+# What a system with a live click log can use. The gap between this and SHIPPED
+# is the honest measure of what the withheld labels cost us, and is reported as
+# such rather than being presented as a leaderboard result.
+PRODUCTION = SHIPPED + ("rolling",)
 
 
 def feature_names(df: pl.DataFrame, families=SHIPPED) -> list[str]:

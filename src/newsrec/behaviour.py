@@ -72,7 +72,7 @@ def _present(lf: pl.LazyFrame, cols) -> list[str]:
 # --------------------------------------------------------------- pair table
 
 def pairs(fs: FeatureStore, split: str, max_impressions: int = 0, seed: int = 0,
-          labelled: bool = True) -> pl.DataFrame:
+          labelled: bool = True, time_cutoff: datetime | None = None) -> pl.DataFrame:
     """One row per candidate the platform actually showed, with its label.
 
     This is A1's `scripts/q4_eval.build_pairs` plus two things the re-ranker
@@ -83,8 +83,16 @@ def pairs(fs: FeatureStore, split: str, max_impressions: int = 0, seed: int = 0,
 
     `max_impressions` subsamples impressions and never candidates within one: a
     partial candidate list would change what AUC and nDCG mean for that row.
+
+    `time_cutoff` deletes everything at or after an instant, which is how
+    `tests/test_behaviour_window.py` checks the boundary: assemble twice, once
+    with the future present and once without, and require the surviving rows to
+    be identical. Keyed on `src_row` rather than `imp`, because `imp` is a row
+    index over whatever survived and is not stable across the two runs.
     """
     imp = fs.impressions(split)
+    if time_cutoff is not None:
+        imp = imp.filter(pl.col("time") < pl.lit(time_cutoff))
     if labelled:
         imp = imp.filter(pl.col("clicked").list.len() > 0)
     keep = ["imp", "src_row", "user_idx", "time", "candidates", "clicked",
@@ -156,6 +164,225 @@ def session_features(imp: pl.LazyFrame) -> pl.LazyFrame:
              .dt.total_seconds()).cast(pl.Float32).alias("secs_since_prev"),
         )
         .select("imp", "session_rank", "session_seconds", "secs_since_prev")
+    )
+
+
+# ---------------------------------------------------------------- dwell time
+
+def dwell_features(imp: pl.LazyFrame) -> pl.LazyFrame:
+    """Dwell signals, as expanding means over strictly earlier impressions.
+
+    Q1.2 asks for dwell time "if available". EB-NeRD has it -- `read_time` and
+    `scroll_percentage` per impression -- and MIND has nothing of the kind, so
+    this block is null there.
+
+    The distinction that makes these usable is *whose* dwell and *when*. The
+    `read_time` of the impression being scored describes a visit that is still in
+    progress at the moment a ranker must choose what to show, which is why A1
+    excluded it and why it stays in `SERVING_GREY`. The mean read time over that
+    user's *earlier* impressions is a different quantity: it is fully determined
+    before the current request arrives, it is cheap to keep in a feature store,
+    and it says something a click count does not -- whether this is a reader or a
+    skimmer.
+
+    Two features, plus the count they are averaged over:
+
+      * `prior_read_time`  -- the user's mean dwell over their earlier impressions
+      * `prior_scroll`     -- the same for scroll depth, which EB-NeRD leaves null
+                              on 70.4% of rows, so it is a sparse column by nature
+
+    They cold-start at each split boundary rather than carrying across splits:
+    the expanding mean is computed within the split being scored, so the first
+    impression of every user in the test split has a null here. That is a real
+    cost -- it is the same stale-boundary problem the article priors have -- and
+    `scripts/q1_report.py` reports the resulting coverage rather than hiding it.
+
+    The window is strictly earlier **in time**, not merely earlier in row order.
+    That distinction is not pedantic: EB-NeRD stamps impressions to the second and
+    a busy user produces several inside one, so a `shift(1)` over rows lets a
+    visit that began at the same instant contribute its dwell to the row being
+    scored. It is also non-deterministic -- which of two tied rows comes first is
+    whatever the sort happened to do -- so the feature moved when unrelated rows
+    were deleted. `tests/test_behaviour_window.py` caught exactly that.
+
+    So the accumulation runs over distinct timestamps: rows sharing an instant all
+    see the same prior window, and none of them sees any other.
+    """
+    names = imp.collect_schema().names()
+    if "read_time" not in names:
+        return imp.select("imp").with_columns(
+            pl.lit(None, dtype=pl.Float32).alias("prior_read_time"),
+            pl.lit(None, dtype=pl.Float32).alias("prior_scroll"),
+            pl.lit(None, dtype=pl.UInt32).alias("prior_impressions"),
+        )
+    rows = imp.select("imp", "user_idx", "time", "read_time", "scroll_percentage")
+    per_instant = (
+        rows.group_by("user_idx", "time")
+        .agg(
+            pl.col("read_time").sum().alias("_rt"),
+            pl.len().cast(pl.UInt32).alias("_n"),
+            pl.col("scroll_percentage").fill_null(0.0).sum().alias("_sc"),
+            pl.col("scroll_percentage").is_not_null().sum().cast(pl.UInt32).alias("_scn"),
+        )
+        .sort("user_idx", "time")
+        .with_columns(
+            pl.col("_rt").cum_sum().shift(1).over("user_idx").alias("_rt_sum"),
+            pl.col("_n").cum_sum().shift(1).over("user_idx").alias("prior_impressions"),
+            pl.col("_sc").cum_sum().shift(1).over("user_idx").alias("_sc_sum"),
+            pl.col("_scn").cum_sum().shift(1).over("user_idx").alias("_sc_n"),
+        )
+        .select("user_idx", "time", "_rt_sum", "prior_impressions", "_sc_sum", "_sc_n")
+    )
+    return (
+        rows.join(per_instant, on=["user_idx", "time"], how="left")
+        .with_columns(
+            (pl.col("_rt_sum") / pl.col("prior_impressions"))
+            .cast(pl.Float32).alias("prior_read_time"),
+            (pl.col("_sc_sum") / pl.col("_sc_n")).cast(pl.Float32).alias("prior_scroll"),
+        )
+        .select("imp", "prior_read_time", "prior_scroll",
+                pl.col("prior_impressions").fill_null(0))
+    )
+
+
+def article_dwell(imp: pl.LazyFrame) -> pl.LazyFrame:
+    """Mean dwell an article earned, over impressions that closed before this one.
+
+    The article-side counterpart of `dwell_features`, and the direct analogue of
+    the lecture's `doc_ctr_30d`: a behavioural statistic about the document,
+    counted on a window that strictly precedes the example using it. Clickbait is
+    exactly the case where click rate and dwell disagree, so an article-level
+    dwell column is the cheapest defence against optimising for attention rather
+    than satisfaction.
+
+    EB-NeRD's `read_time` belongs to the impression, not to a named article, so
+    it is attributed to whatever that impression clicked. For a near-single-click
+    log (1.01 clicks per impression) that attribution is unambiguous on almost
+    every row.
+
+    Returned as a time-ordered event table for an as-of join, rather than as a
+    per-article scalar: a scalar would have to be computed on some window, and
+    every choice of window is either stale or leaky. The as-of join lets each
+    impression read the value as it stood at that instant.
+
+    One row per (article, instant), carrying the mean *including* everything at
+    that instant. The as-of join that consumes it is then run with
+    `allow_exact_matches=False`, so a row at time t reads the last instant
+    strictly before t -- which is the mean over exactly the visits that had
+    finished when the request arrived. Collapsing to one row per instant first is
+    what makes the result independent of row order: EB-NeRD's second-resolution
+    timestamps tie constantly, and an expanding mean over tied rows depends on how
+    the sort broke them.
+    """
+    names = imp.collect_schema().names()
+    if "read_time" not in names:
+        return pl.LazyFrame(schema={"article_idx": pl.UInt32, "time": pl.Datetime("us"),
+                                    "art_read_time": pl.Float32,
+                                    "art_dwell_n": pl.UInt32})
+    return (
+        imp.select("clicked", "time", "read_time")
+        .explode("clicked")
+        .drop_nulls("clicked")
+        .rename({"clicked": "article_idx"})
+        .group_by("article_idx", "time")
+        .agg(pl.col("read_time").sum().alias("_rt"), pl.len().cast(pl.UInt32).alias("_n"))
+        .sort("article_idx", "time")
+        .with_columns(
+            pl.col("_rt").cum_sum().over("article_idx").alias("_sum"),
+            pl.col("_n").cum_sum().over("article_idx").alias("art_dwell_n"),
+        )
+        .with_columns((pl.col("_sum") / pl.col("art_dwell_n"))
+                      .cast(pl.Float32).alias("art_read_time"))
+        .select("article_idx", "time", "art_read_time", "art_dwell_n")
+        .sort("time")
+    )
+
+
+# ------------------------------------------------- rolling article statistics
+
+def rolling_article_stats(imp: pl.LazyFrame, labelled: bool = True) -> pl.LazyFrame:
+    """Per-article counters as they stood at each instant, inside the split.
+
+    A1's `article_features` computes popularity once, on the window strictly
+    before the split, and then holds it fixed for the whole split. On a news
+    corpus that is a severe approximation: 84.2% of EB-NeRD's candidate slots and
+    54.9% of MIND's have a prior click count of exactly zero, because the article
+    did not exist when the window closed. That frozen prior is what put A1's MIND
+    popularity submission at 0.4900 -- below chance -- and it is the single
+    largest gap in the feature matrix.
+
+    This is the same statistic kept rolling: at an impression at time t, how many
+    times had this article been shown, and clicked, strictly before t. It is the
+    lecture's `doc_ctr_30d` with the window ending at the request instead of at
+    the split boundary, and it is what a real feature store actually holds.
+
+    **The two counters have different availability, and the difference decides
+    what may ship.**
+
+      * `roll_inview` counts *exposures*. Candidate lists are published for the
+        unlabelled Codabench test sets, so this is computable there, and at
+        serving time trivially so.
+      * `roll_clicks` / `roll_ctr` count *clicks*. In production these are
+        available -- a click that happened an hour ago is in the log. On the
+        Codabench split they are not, because the labels are withheld by
+        construction.
+
+    So a model that leans on `roll_clicks` reports what a production system could
+    do and cannot be submitted as-is. Both models are built and both numbers are
+    reported; `FAMILIES["rolling"]` is the dividing line, and the design note
+    argues the distinction rather than quietly picking one.
+
+    Counters are cumulative *including* the current instant, and consumed through
+    an as-of join with `allow_exact_matches=False`, which is what makes the read
+    strictly prior. One row per (article, instant) keeps the join independent of
+    how ties were sorted.
+    """
+    inview = (
+        imp.select("candidates", "time")
+        .explode("candidates")
+        .drop_nulls("candidates")
+        .rename({"candidates": "article_idx"})
+        .group_by("article_idx", "time")
+        .agg(pl.len().cast(pl.UInt32).alias("_v"))
+    )
+    if labelled:
+        clicks = (
+            imp.select("clicked", "time")
+            .explode("clicked")
+            .drop_nulls("clicked")
+            .rename({"clicked": "article_idx"})
+            .group_by("article_idx", "time")
+            .agg(pl.len().cast(pl.UInt32).alias("_c"))
+        )
+        ev = inview.join(clicks, on=["article_idx", "time"], how="left").with_columns(
+            pl.col("_c").fill_null(0))
+    else:
+        ev = inview.with_columns(pl.lit(0, dtype=pl.UInt32).alias("_c"))
+
+    return (
+        ev.sort("article_idx", "time")
+        .with_columns(
+            pl.col("_v").cum_sum().over("article_idx").alias("roll_inview"),
+            pl.col("_c").cum_sum().over("article_idx").alias("roll_clicks"),
+        )
+        .with_columns(
+            # smoothed towards zero rather than towards the corpus mean: early in
+            # a split the denominator is tiny, and an unsmoothed 1/1 would read as
+            # a perfect article. 20 is the exposure count at which the observed
+            # rate gets half the weight.
+            (pl.col("roll_clicks") / (pl.col("roll_inview") + 20.0))
+            .cast(pl.Float32).alias("roll_ctr"),
+            # hours since the article was first seen *in this split*, which is the
+            # freshness signal `age_hours` cannot give on MIND
+            pl.col("time").min().over("article_idx").alias("_first"),
+        )
+        .with_columns(
+            ((pl.col("time") - pl.col("_first")).dt.total_seconds() / 3600.0)
+            .cast(pl.Float32).alias("roll_age_hours")
+        )
+        .select("article_idx", "time", "roll_inview", "roll_clicks", "roll_ctr",
+                "roll_age_hours")
+        .sort("time")
     )
 
 
@@ -293,7 +520,8 @@ def article_timing(fs: FeatureStore) -> pl.LazyFrame:
 
 def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
              seed: int = 0, history_mode: str = "shipped",
-             halflife_hours: float = 24.0, labelled: bool = True) -> pl.DataFrame:
+             halflife_hours: float = 24.0, labelled: bool = True,
+             time_cutoff: datetime | None = None) -> pl.DataFrame:
     """The full behavioural design matrix: one row per shown candidate.
 
     Joins, in order: the pair table, per-impression session context, the prior
@@ -306,13 +534,19 @@ def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
     stamps with `computed_through`; the session block is causal within the split;
     freshness and category match read only the catalogue and the user's history.
     """
-    p = pairs(fs, split, max_impressions=max_impressions, seed=seed, labelled=labelled)
+    p = pairs(fs, split, max_impressions=max_impressions, seed=seed,
+              labelled=labelled, time_cutoff=time_cutoff)
     lf = p.lazy()
+    src = fs.impressions(split)
+    if time_cutoff is not None:
+        src = src.filter(pl.col("time") < pl.lit(time_cutoff))
 
     imp_level = p.lazy().select(
         ["imp", "user_idx", "time",
-         *_present(p.lazy(), ("session_id",))]).unique(subset=["imp"])
+         *_present(p.lazy(), ("session_id", "read_time", "scroll_percentage"))]
+    ).unique(subset=["imp"])
     lf = lf.join(session_features(imp_level), on="imp", how="left")
+    lf = lf.join(dwell_features(imp_level), on="imp", how="left")
 
     af = fs.article_features(split).select(
         "article_idx",
@@ -346,6 +580,22 @@ def assemble(fs: FeatureStore, split: str, max_impressions: int = 0,
             .cast(pl.Float32).alias("age_hours")
         )
     )
+
+    # Article dwell, read as it stood at the instant of this impression. An as-of
+    # join rather than a grouped aggregate: a per-article scalar would have to be
+    # computed on some fixed window, and every such window is either stale by the
+    # end of the split or leaky by the start of it.
+    lf = lf.sort("time")
+    events = article_dwell(src)
+    if events.collect_schema()["art_read_time"] != pl.Null:
+        lf = lf.join_asof(events, on="time", by="article_idx", strategy="backward",
+                          allow_exact_matches=False)
+
+    # Rolling exposure/click counters, read as of the instant of the impression.
+    # Same join discipline: strictly before, one row per (article, instant).
+    lf = lf.join_asof(rolling_article_stats(src, labelled=labelled),
+                      on="time", by="article_idx", strategy="backward",
+                      allow_exact_matches=False)
 
     prof = user_category_profile(fs, split, history_mode)
     lf = lf.join(prof, on=["user_idx", "category"], how="left")
