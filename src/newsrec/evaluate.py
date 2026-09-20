@@ -191,6 +191,70 @@ def novelty(rec: list[np.ndarray], pop_share: np.ndarray) -> float:
     return float(np.mean(vals)) if vals else float("nan")
 
 
+def intra_list_diversity_per_list(rec: list[np.ndarray],
+                                 emb: np.ndarray) -> np.ndarray:
+    """Per-list 1 - mean pairwise cosine, so the metric can carry a CI.
+
+    The pooled estimator above truncates every list to the shortest one so the
+    pairs stack into one array. That is fine for a point estimate but wrong to
+    bootstrap: the resampling unit has to be the impression, and each list must
+    contribute its own value at its own length. Lists shorter than two items
+    have no pair and yield NaN rather than zero -- a one-item list is not
+    minimally diverse, it is undefined.
+    """
+    out = np.full(len(rec), np.nan, dtype=np.float64)
+    for i, r in enumerate(rec):
+        r = np.asarray(r, dtype=np.int64)
+        if len(r) < 2:
+            continue
+        v = np.asarray(emb[r], dtype=np.float32)
+        v /= np.maximum(np.linalg.norm(v, axis=1, keepdims=True), 1e-12)
+        g = v @ v.T
+        iu = np.triu_indices(len(r), k=1)
+        out[i] = 1.0 - float(g[iu].mean())
+    return out
+
+
+def novelty_per_list(rec: list[np.ndarray], pop_share: np.ndarray) -> np.ndarray:
+    """Per-list mean self-information, the bootstrap unit behind novelty()."""
+    logp = -np.log2(np.maximum(pop_share, 1e-12))
+    out = np.full(len(rec), np.nan, dtype=np.float64)
+    for i, r in enumerate(rec):
+        r = np.asarray(r, dtype=np.int64)
+        if len(r):
+            out[i] = float(logp[r].mean())
+    return out
+
+
+def coverage_ci(rec: list[np.ndarray], catalogue: int, n_boot: int = 500,
+                alpha: float = 0.05, seed: int = 0) -> tuple[float, float]:
+    """Percentile CI for catalogue coverage by resampling impressions.
+
+    Coverage is a union over lists, not a mean over them, so it cannot go
+    through `bootstrap`. Resampling impressions with replacement and recomputing
+    the union each time is the matching procedure: it answers "how much would
+    this number move had we drawn a different set of requests", which is the
+    same question the other intervals answer. Note a resample draws duplicates,
+    so the bootstrap distribution of a union statistic sits *below* the observed
+    value -- the interval is informative about spread, and is not expected to be
+    centred on the point estimate.
+    """
+    n = len(rec)
+    if not n or catalogue <= 0:
+        return (float("nan"), float("nan"))
+    arrs = [np.asarray(r, dtype=np.int64) for r in rec]
+    rng = np.random.default_rng(seed)
+    vals = np.empty(n_boot, dtype=np.float64)
+    for b in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        seen = set()
+        for i in idx:
+            seen.update(arrs[i].tolist())
+        vals[b] = len(seen) / catalogue
+    lo, hi = np.percentile(vals, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return (float(lo), float(hi))
+
+
 def coverage(rec: list[np.ndarray], catalogue: int) -> float:
     """Share of the catalogue that appears in at least one recommendation."""
     seen = set()

@@ -48,8 +48,10 @@ import polars as pl
 
 from newsrec.embeddings import article_embeddings
 from newsrec.evaluate import (METRICS, bootstrap, calibration, coverage,
-                              intra_list_diversity, novelty, paired_report,
-                              rank_metrics, summarise_ranking, topk_lists)
+                              coverage_ci, intra_list_diversity,
+                              intra_list_diversity_per_list, novelty,
+                              novelty_per_list, paired_report, rank_metrics,
+                              summarise_ranking, topk_lists)
 from newsrec.rerank import FAMILIES, SHIPPED, feature_names, predict, train
 from newsrec.semantic import l2_normalise
 from newsrec.store import FeatureStore
@@ -75,15 +77,37 @@ HEAD_QUANTILE = 0.80    # an article is head if its prior exposure is top 20%
 
 
 def beyond_accuracy(df: pl.DataFrame, scores: np.ndarray, emb: np.ndarray,
-                    pop_share: np.ndarray, catalogue: int, k: int = 10) -> dict:
+                    pop_share: np.ndarray, catalogue: int, k: int = 10,
+                    n_boot: int = 500) -> dict:
     pairs = df.select("imp", "article_idx").with_columns(
         pl.Series("score", np.asarray(scores, dtype=np.float64)))
     lists = topk_lists(pairs, k=k)
     rec = [np.asarray(r, dtype=np.int64) for r in lists["rec"].to_list()]
+    # Q5 asks for a CI on *all* reported metrics, not only the accuracy ones.
+    # Diversity and novelty are means over impressions, so they bootstrap the
+    # same way; coverage is a union and needs its own resampling (see
+    # evaluate.coverage_ci for why its interval is not centred on the point).
+    ild_v = intra_list_diversity_per_list(rec, emb)
+    nov_v = novelty_per_list(rec, pop_share)
+    ild_m, ild_lo, ild_hi = bootstrap(ild_v[~np.isnan(ild_v)], n_boot=n_boot)
+    nov_m, nov_lo, nov_hi = bootstrap(nov_v[~np.isnan(nov_v)], n_boot=n_boot)
+    cov_lo, cov_hi = coverage_ci(rec, catalogue, n_boot=n_boot)
     return {
-        f"ild@{k}": intra_list_diversity(rec, emb),
+        # The reported ILD is the per-list mean, not the pooled estimator.
+        # The pooled one stacks lists into a matrix and so truncates every list
+        # to the SHORTEST in the dataset: MIND's shortest in-impression list has
+        # 2 candidates, so "ild@10" was measuring the diversity of the top 2 of
+        # every list. That is why the pooled value falls outside its own
+        # interval (0.846 against [0.903, 0.904]) while the two agree exactly on
+        # the two-stage sets, where every retrieved list has at least k. Kept
+        # beside it as `_pooled_at_kmin` so the older number stays inspectable.
+        f"ild@{k}": round(float(ild_m), 5),
+        f"ild@{k}_ci95": [round(ild_lo, 5), round(ild_hi, 5)],
+        f"ild@{k}_pooled_at_kmin": intra_list_diversity(rec, emb),
         f"novelty@{k}": novelty(rec, pop_share),
+        f"novelty@{k}_ci95": [round(nov_lo, 5), round(nov_hi, 5)],
         f"coverage@{k}": coverage(rec, catalogue),
+        f"coverage@{k}_ci95": [round(cov_lo, 5), round(cov_hi, 5)],
         "n_lists": len(rec),
     }
 
@@ -181,7 +205,7 @@ def main() -> None:
         pi = rank_metrics(te.select("imp", "article_idx", "label").with_columns(
             pl.Series("score", s)), ks=(5, 10))
         overall[name] = summarise_with_ci(pi, a.n_boot)
-        overall[name].update(beyond_accuracy(te, s, emb, pop_share, fs.n_articles))
+        overall[name].update(beyond_accuracy(te, s, emb, pop_share, fs.n_articles, n_boot=a.n_boot))
         # L7 s.38: a ranking metric cannot see whether the score means anything
         # at face value. Reported for every arm, expected to be poor for a
         # ranking objective, and measured rather than assumed.

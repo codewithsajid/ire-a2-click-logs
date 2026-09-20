@@ -47,6 +47,7 @@ nrms = {d: j(f"q3/nrms_{d}_{V}.json") for d in DS}
 nrms_add = {d: j(f"q3/nrms_{d}_{V}_add.json") for d in DS}
 abl = {d: j(f"q3/ablation_{d}_{V}.json") for d in DS}
 ev = {d: j(f"q5/eval_{d}_{V}.json") for d in DS}
+evts = {d: j(f"q5/eval_{d}_{V}_twostage.json") for d in DS}
 srv = {d: j(f"q4/serving_{d}_{V}.json") for d in DS}
 pos = {d: j(f"q1/position_{d}_{V}.json") for d in DS}
 cov = {d: j(f"q1/coverage_{d}_{V}.json") for d in DS}
@@ -276,10 +277,14 @@ def sec_eval() -> str:
             if r:
                 sl.append(f"<tr><td>{L[d]}</td><td>{s}</td><td>{v['n_impressions']:,}</td>"
                           f"<td>{f4(r['auc'])}</td><td>{f4(r['ndcg@10'])}</td></tr>")
-        for s, v in e.get("head_tail_verdict", {}).items():
-            ht.append(f"<tr><td>{L[d]}</td><td>{s}</td><td>{v['content_auc']:.4f}</td>"
-                      f"<td>{v['article_log_auc']:.4f}</td>"
-                      f"<td>{'article-log' if v.get('article_log_wins') else '<b>content</b>'}</td></tr>")
+        for src, lbl in ((evts.get(d), "two-stage"), (e, "in-impression")):
+            if not src:
+                continue
+            for s, v in src.get("head_tail_verdict", {}).items():
+                ht.append(f"<tr><td>{L[d]} ({lbl})</td><td>{s}</td>"
+                          f"<td>{v['content_auc']:.4f}</td>"
+                          f"<td>{v['article_log_auc']:.4f}</td>"
+                          f"<td>{'article-log' if v.get('article_log_wins') else '<b>content</b>'}</td></tr>")
     pb = []
     for d in DS:
         p = pos.get(d)
@@ -315,10 +320,13 @@ and <code>position</code> stays quarantined on evidence rather than caution.</p>
 on the head and empty on the tail. Measured with the arms defined at column level:</p>
 <table><tr><th>dataset</th><th>slice</th><th>content AUC</th><th>article-log AUC</th><th>winner</th></tr>
 {''.join(ht)}</table>
-<p>A confound this test cannot escape: the slice is defined by an article's exposure count
-and the article-log arm is built from exposure counts, so conditioning removes that
-feature's variance inside the slice. The two arms may be compared <i>within</i> a slice; one
-arm may not be compared <i>across</i> slices.</p>
+<p><b>The answer depends on the candidate set.</b> In-impression, content wins all four
+slices and the claim is falsified; through the cascade MIND inverts, because stage one has
+already discarded the articles a popularity prior would rank wrongly. The claim is a
+property of the candidate set, not of the data &mdash; on 420 impressions, the thinnest
+evidence here. A confound it cannot escape: the slice is defined by exposure count and the
+article-log arm is built from exposure counts, so conditioning removes that variance inside
+the slice. The arms compare <i>within</i> a slice, never <i>across</i> one.</p>
 """
 
 

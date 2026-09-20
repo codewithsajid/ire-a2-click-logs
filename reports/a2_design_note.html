@@ -133,7 +133,7 @@ sample size, not about what a user would notice.</p>
 
 <h2>3 &nbsp;Extended evaluation</h2>
 <table><tr><th>dataset</th><th>model</th><th>AUC</th><th>nDCG@10</th><th>ILD@10</th>
-<th>novelty@10</th><th>coverage@10</th></tr><tr><td>EB-NeRD</td><td>shipped</td><td>0.7302</td><td>0.6041</td><td>0.763</td><td>36.62</td><td>0.200</td></tr><tr><td>EB-NeRD</td><td>content-only</td><td>0.7078</td><td>0.5819</td><td>0.756</td><td>36.77</td><td>0.196</td></tr><tr><td>EB-NeRD</td><td>article-log-only</td><td>0.6251</td><td>0.5106</td><td>0.772</td><td>36.20</td><td>0.204</td></tr><tr><td>MIND</td><td>shipped</td><td>0.6452</td><td>0.4021</td><td>0.846</td><td>28.55</td><td>0.057</td></tr><tr><td>MIND</td><td>content-only</td><td>0.6457</td><td>0.4051</td><td>0.843</td><td>29.09</td><td>0.057</td></tr><tr><td>MIND</td><td>article-log-only</td><td>0.4930</td><td>0.2870</td><td>0.935</td><td>30.83</td><td>0.068</td></tr></table>
+<th>novelty@10</th><th>coverage@10</th></tr><tr><td>EB-NeRD</td><td>shipped</td><td>0.7302</td><td>0.6041</td><td>0.769</td><td>36.62</td><td>0.200</td></tr><tr><td>EB-NeRD</td><td>content-only</td><td>0.7078</td><td>0.5819</td><td>0.766</td><td>36.77</td><td>0.196</td></tr><tr><td>EB-NeRD</td><td>article-log-only</td><td>0.6251</td><td>0.5106</td><td>0.772</td><td>36.20</td><td>0.204</td></tr><tr><td>MIND</td><td>shipped</td><td>0.6452</td><td>0.4021</td><td>0.903</td><td>28.55</td><td>0.057</td></tr><tr><td>MIND</td><td>content-only</td><td>0.6457</td><td>0.4051</td><td>0.902</td><td>29.09</td><td>0.057</td></tr><tr><td>MIND</td><td>article-log-only</td><td>0.4930</td><td>0.2870</td><td>0.944</td><td>30.83</td><td>0.068</td></tr></table>
 <p>Diversity is intra-list distance in the embedding space rather than over the category
 taxonomy: MIND's taxonomy is 18 labels wide and EB-NeRD's is a different taxonomy, so a
 category index is not comparable across the two. Novelty is scored against the click
@@ -157,11 +157,14 @@ and <code>position</code> stays quarantined on evidence rather than caution.</p>
 <p><b>Head versus tail.</b> The claim is that memorised article statistics are unbeatable
 on the head and empty on the tail. Measured with the arms defined at column level:</p>
 <table><tr><th>dataset</th><th>slice</th><th>content AUC</th><th>article-log AUC</th><th>winner</th></tr>
-<tr><td>EB-NeRD</td><td>head</td><td>0.7025</td><td>0.5250</td><td><b>content</b></td></tr><tr><td>EB-NeRD</td><td>tail</td><td>0.7091</td><td>0.6503</td><td><b>content</b></td></tr><tr><td>MIND</td><td>head</td><td>0.6285</td><td>0.3459</td><td><b>content</b></td></tr><tr><td>MIND</td><td>tail</td><td>0.6521</td><td>0.5481</td><td><b>content</b></td></tr></table>
-<p>A confound this test cannot escape: the slice is defined by an article's exposure count
-and the article-log arm is built from exposure counts, so conditioning removes that
-feature's variance inside the slice. The two arms may be compared <i>within</i> a slice; one
-arm may not be compared <i>across</i> slices.</p>
+<tr><td>EB-NeRD (two-stage)</td><td>head</td><td>0.9168</td><td>0.7411</td><td><b>content</b></td></tr><tr><td>EB-NeRD (two-stage)</td><td>tail</td><td>0.9808</td><td>0.8976</td><td><b>content</b></td></tr><tr><td>EB-NeRD (in-impression)</td><td>head</td><td>0.7025</td><td>0.5250</td><td><b>content</b></td></tr><tr><td>EB-NeRD (in-impression)</td><td>tail</td><td>0.7091</td><td>0.6503</td><td><b>content</b></td></tr><tr><td>MIND (two-stage)</td><td>head</td><td>0.9083</td><td>0.9927</td><td>article-log</td></tr><tr><td>MIND (two-stage)</td><td>tail</td><td>0.9224</td><td>0.9686</td><td>article-log</td></tr><tr><td>MIND (in-impression)</td><td>head</td><td>0.6285</td><td>0.3459</td><td><b>content</b></td></tr><tr><td>MIND (in-impression)</td><td>tail</td><td>0.6521</td><td>0.5481</td><td><b>content</b></td></tr></table>
+<p><b>The answer depends on the candidate set.</b> In-impression, content wins all four
+slices and the claim is falsified; through the cascade MIND inverts, because stage one has
+already discarded the articles a popularity prior would rank wrongly. The claim is a
+property of the candidate set, not of the data &mdash; on 420 impressions, the thinnest
+evidence here. A confound it cannot escape: the slice is defined by exposure count and the
+article-log arm is built from exposure counts, so conditioning removes that variance inside
+the slice. The arms compare <i>within</i> a slice, never <i>across</i> one.</p>
 
 <h2>4 &nbsp;Serving and scale</h2>
 <table><tr><th>dataset</th><th>ANN index</th><th>BM25 index</th><th>article vectors</th>

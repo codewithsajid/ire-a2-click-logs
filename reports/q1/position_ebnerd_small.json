@@ -1,0 +1,895 @@
+{
+  "max_pos": 55,
+  "observed_ctr": [
+    {
+      "position": 0,
+      "n_shown": 200328,
+      "n_clicked": 24105,
+      "ctr": 0.12032766263328142
+    },
+    {
+      "position": 1,
+      "n_shown": 200328,
+      "n_clicked": 24182,
+      "ctr": 0.12071203226708199
+    },
+    {
+      "position": 2,
+      "n_shown": 200328,
+      "n_clicked": 24020,
+      "ctr": 0.119903358492073
+    },
+    {
+      "position": 3,
+      "n_shown": 200328,
+      "n_clicked": 24280,
+      "ctr": 0.12120122998282816
+    },
+    {
+      "position": 4,
+      "n_shown": 200328,
+      "n_clicked": 24491,
+      "ctr": 0.12225450261571023
+    },
+    {
+      "position": 5,
+      "n_shown": 165377,
+      "n_clicked": 17059,
+      "ctr": 0.10315219165905778
+    },
+    {
+      "position": 6,
+      "n_shown": 137473,
+      "n_clicked": 12482,
+      "ctr": 0.09079601085304023
+    },
+    {
+      "position": 7,
+      "n_shown": 116552,
+      "n_clicked": 9391,
+      "ctr": 0.08057347793259662
+    },
+    {
+      "position": 8,
+      "n_shown": 99031,
+      "n_clicked": 7426,
+      "ctr": 0.07498662035120315
+    },
+    {
+      "position": 9,
+      "n_shown": 83727,
+      "n_clicked": 5759,
+      "ctr": 0.06878306878306878
+    },
+    {
+      "position": 10,
+      "n_shown": 72990,
+      "n_clicked": 4475,
+      "ctr": 0.06130976846143307
+    },
+    {
+      "position": 11,
+      "n_shown": 64181,
+      "n_clicked": 3849,
+      "ctr": 0.059971019460588026
+    },
+    {
+      "position": 12,
+      "n_shown": 56291,
+      "n_clicked": 3100,
+      "ctr": 0.055070970492618714
+    },
+    {
+      "position": 13,
+      "n_shown": 49127,
+      "n_clicked": 2545,
+      "ctr": 0.05180450668675066
+    },
+    {
+      "position": 14,
+      "n_shown": 42997,
+      "n_clicked": 2174,
+      "ctr": 0.050561667093053
+    },
+    {
+      "position": 15,
+      "n_shown": 37607,
+      "n_clicked": 1658,
+      "ctr": 0.044087536894727046
+    },
+    {
+      "position": 16,
+      "n_shown": 32811,
+      "n_clicked": 1468,
+      "ctr": 0.04474109292615282
+    },
+    {
+      "position": 17,
+      "n_shown": 28646,
+      "n_clicked": 1192,
+      "ctr": 0.041611394260978846
+    },
+    {
+      "position": 18,
+      "n_shown": 25172,
+      "n_clicked": 1021,
+      "ctr": 0.04056094072779279
+    },
+    {
+      "position": 19,
+      "n_shown": 22300,
+      "n_clicked": 853,
+      "ctr": 0.038251121076233185
+    },
+    {
+      "position": 20,
+      "n_shown": 19833,
+      "n_clicked": 750,
+      "ctr": 0.037815761609438815
+    },
+    {
+      "position": 21,
+      "n_shown": 17776,
+      "n_clicked": 620,
+      "ctr": 0.034878487848784875
+    },
+    {
+      "position": 22,
+      "n_shown": 15936,
+      "n_clicked": 545,
+      "ctr": 0.03419929718875502
+    },
+    {
+      "position": 23,
+      "n_shown": 14386,
+      "n_clicked": 432,
+      "ctr": 0.03002919505074378
+    },
+    {
+      "position": 24,
+      "n_shown": 12974,
+      "n_clicked": 416,
+      "ctr": 0.03206412825651302
+    },
+    {
+      "position": 25,
+      "n_shown": 11638,
+      "n_clicked": 333,
+      "ctr": 0.0286131637738443
+    },
+    {
+      "position": 26,
+      "n_shown": 10433,
+      "n_clicked": 314,
+      "ctr": 0.030096808204734975
+    },
+    {
+      "position": 27,
+      "n_shown": 9318,
+      "n_clicked": 278,
+      "ctr": 0.029834728482506977
+    },
+    {
+      "position": 28,
+      "n_shown": 8358,
+      "n_clicked": 236,
+      "ctr": 0.028236420196219192
+    },
+    {
+      "position": 29,
+      "n_shown": 7453,
+      "n_clicked": 199,
+      "ctr": 0.02670065745337448
+    },
+    {
+      "position": 30,
+      "n_shown": 6680,
+      "n_clicked": 173,
+      "ctr": 0.025898203592814372
+    },
+    {
+      "position": 31,
+      "n_shown": 6021,
+      "n_clicked": 162,
+      "ctr": 0.026905829596412557
+    },
+    {
+      "position": 32,
+      "n_shown": 5351,
+      "n_clicked": 139,
+      "ctr": 0.025976452999439358
+    },
+    {
+      "position": 33,
+      "n_shown": 4787,
+      "n_clicked": 108,
+      "ctr": 0.022561102987257154
+    },
+    {
+      "position": 34,
+      "n_shown": 4306,
+      "n_clicked": 110,
+      "ctr": 0.025545750116117046
+    },
+    {
+      "position": 35,
+      "n_shown": 3876,
+      "n_clicked": 79,
+      "ctr": 0.02038183694530444
+    },
+    {
+      "position": 36,
+      "n_shown": 3479,
+      "n_clicked": 89,
+      "ctr": 0.02558206381144007
+    },
+    {
+      "position": 37,
+      "n_shown": 3122,
+      "n_clicked": 73,
+      "ctr": 0.023382447149263293
+    },
+    {
+      "position": 38,
+      "n_shown": 2804,
+      "n_clicked": 73,
+      "ctr": 0.026034236804564907
+    },
+    {
+      "position": 39,
+      "n_shown": 2517,
+      "n_clicked": 70,
+      "ctr": 0.027810885975367503
+    },
+    {
+      "position": 40,
+      "n_shown": 2250,
+      "n_clicked": 44,
+      "ctr": 0.019555555555555555
+    },
+    {
+      "position": 41,
+      "n_shown": 2005,
+      "n_clicked": 40,
+      "ctr": 0.0199501246882793
+    },
+    {
+      "position": 42,
+      "n_shown": 1810,
+      "n_clicked": 29,
+      "ctr": 0.016022099447513812
+    },
+    {
+      "position": 43,
+      "n_shown": 1631,
+      "n_clicked": 34,
+      "ctr": 0.020846106683016553
+    },
+    {
+      "position": 44,
+      "n_shown": 1458,
+      "n_clicked": 19,
+      "ctr": 0.013031550068587106
+    },
+    {
+      "position": 45,
+      "n_shown": 1299,
+      "n_clicked": 24,
+      "ctr": 0.018475750577367205
+    },
+    {
+      "position": 46,
+      "n_shown": 1142,
+      "n_clicked": 28,
+      "ctr": 0.024518388791593695
+    },
+    {
+      "position": 47,
+      "n_shown": 1016,
+      "n_clicked": 15,
+      "ctr": 0.014763779527559055
+    },
+    {
+      "position": 48,
+      "n_shown": 899,
+      "n_clicked": 20,
+      "ctr": 0.02224694104560623
+    },
+    {
+      "position": 49,
+      "n_shown": 799,
+      "n_clicked": 21,
+      "ctr": 0.026282853566958697
+    },
+    {
+      "position": 50,
+      "n_shown": 689,
+      "n_clicked": 12,
+      "ctr": 0.01741654571843251
+    },
+    {
+      "position": 51,
+      "n_shown": 618,
+      "n_clicked": 15,
+      "ctr": 0.024271844660194174
+    },
+    {
+      "position": 52,
+      "n_shown": 537,
+      "n_clicked": 5,
+      "ctr": 0.00931098696461825
+    },
+    {
+      "position": 53,
+      "n_shown": 440,
+      "n_clicked": 7,
+      "ctr": 0.015909090909090907
+    },
+    {
+      "position": 54,
+      "n_shown": 374,
+      "n_clicked": 7,
+      "ctr": 0.01871657754010695
+    }
+  ],
+  "stratified": [
+    {
+      "position": 0,
+      "ratio": 0.9994797743976553,
+      "n_shown": 195541,
+      "n_clicked": 23984,
+      "n_lengths": 29
+    },
+    {
+      "position": 1,
+      "ratio": 1.003635599083498,
+      "n_shown": 195541,
+      "n_clicked": 24069,
+      "n_lengths": 29
+    },
+    {
+      "position": 2,
+      "ratio": 0.9912359900553764,
+      "n_shown": 195541,
+      "n_clicked": 23909,
+      "n_lengths": 29
+    },
+    {
+      "position": 3,
+      "ratio": 1.00596565689438,
+      "n_shown": 195541,
+      "n_clicked": 24148,
+      "n_lengths": 29
+    },
+    {
+      "position": 4,
+      "ratio": 1.0102918310140272,
+      "n_shown": 195541,
+      "n_clicked": 24364,
+      "n_lengths": 29
+    },
+    {
+      "position": 5,
+      "ratio": 0.995203646990587,
+      "n_shown": 160590,
+      "n_clicked": 16950,
+      "n_lengths": 28
+    },
+    {
+      "position": 6,
+      "ratio": 0.9969505266091476,
+      "n_shown": 132686,
+      "n_clicked": 12369,
+      "n_lengths": 27
+    },
+    {
+      "position": 7,
+      "ratio": 0.9867572901835008,
+      "n_shown": 111765,
+      "n_clicked": 9285,
+      "n_lengths": 26
+    },
+    {
+      "position": 8,
+      "ratio": 1.007836829677216,
+      "n_shown": 94244,
+      "n_clicked": 7306,
+      "n_lengths": 25
+    },
+    {
+      "position": 9,
+      "ratio": 1.0181212265365156,
+      "n_shown": 78940,
+      "n_clicked": 5636,
+      "n_lengths": 24
+    },
+    {
+      "position": 10,
+      "ratio": 0.9757171474255437,
+      "n_shown": 68203,
+      "n_clicked": 4348,
+      "n_lengths": 23
+    },
+    {
+      "position": 11,
+      "ratio": 1.025853494235754,
+      "n_shown": 59394,
+      "n_clicked": 3727,
+      "n_lengths": 22
+    },
+    {
+      "position": 12,
+      "ratio": 0.9950431282943096,
+      "n_shown": 51504,
+      "n_clicked": 2981,
+      "n_lengths": 21
+    },
+    {
+      "position": 13,
+      "ratio": 1.0039843958204604,
+      "n_shown": 44340,
+      "n_clicked": 2427,
+      "n_lengths": 20
+    },
+    {
+      "position": 14,
+      "ratio": 1.037995144839219,
+      "n_shown": 38210,
+      "n_clicked": 2056,
+      "n_lengths": 19
+    },
+    {
+      "position": 15,
+      "ratio": 0.9618711403149703,
+      "n_shown": 32820,
+      "n_clicked": 1561,
+      "n_lengths": 18
+    },
+    {
+      "position": 16,
+      "ratio": 1.0027931045976106,
+      "n_shown": 28024,
+      "n_clicked": 1320,
+      "n_lengths": 17
+    },
+    {
+      "position": 17,
+      "ratio": 0.9844591791736099,
+      "n_shown": 23859,
+      "n_clicked": 1061,
+      "n_lengths": 16
+    },
+    {
+      "position": 18,
+      "ratio": 1.0092040287783048,
+      "n_shown": 20385,
+      "n_clicked": 897,
+      "n_lengths": 15
+    },
+    {
+      "position": 19,
+      "ratio": 1.0010538243260023,
+      "n_shown": 17513,
+      "n_clicked": 724,
+      "n_lengths": 14
+    },
+    {
+      "position": 20,
+      "ratio": 0.9963391592973122,
+      "n_shown": 15046,
+      "n_clicked": 601,
+      "n_lengths": 13
+    },
+    {
+      "position": 21,
+      "ratio": 0.9698379429136195,
+      "n_shown": 12989,
+      "n_clicked": 492,
+      "n_lengths": 12
+    },
+    {
+      "position": 22,
+      "ratio": 1.0053705094867351,
+      "n_shown": 11149,
+      "n_clicked": 423,
+      "n_lengths": 11
+    },
+    {
+      "position": 23,
+      "ratio": 0.9183576720168813,
+      "n_shown": 9599,
+      "n_clicked": 326,
+      "n_lengths": 10
+    },
+    {
+      "position": 24,
+      "ratio": 1.0306068791375849,
+      "n_shown": 8187,
+      "n_clicked": 302,
+      "n_lengths": 9
+    },
+    {
+      "position": 25,
+      "ratio": 0.9105505974665897,
+      "n_shown": 6851,
+      "n_clicked": 218,
+      "n_lengths": 8
+    },
+    {
+      "position": 26,
+      "ratio": 1.0445373215348346,
+      "n_shown": 5646,
+      "n_clicked": 202,
+      "n_lengths": 7
+    },
+    {
+      "position": 27,
+      "ratio": 0.9975022092212419,
+      "n_shown": 4531,
+      "n_clicked": 151,
+      "n_lengths": 6
+    },
+    {
+      "position": 28,
+      "ratio": 0.9735400287728494,
+      "n_shown": 3571,
+      "n_clicked": 114,
+      "n_lengths": 5
+    },
+    {
+      "position": 29,
+      "ratio": 1.0061030845454286,
+      "n_shown": 2666,
+      "n_clicked": 86,
+      "n_lengths": 4
+    },
+    {
+      "position": 30,
+      "ratio": 0.8358709533214447,
+      "n_shown": 1893,
+      "n_clicked": 50,
+      "n_lengths": 3
+    },
+    {
+      "position": 31,
+      "ratio": 1.0714502660679097,
+      "n_shown": 1234,
+      "n_clicked": 41,
+      "n_lengths": 2
+    },
+    {
+      "position": 32,
+      "ratio": 1.1599297012302285,
+      "n_shown": 564,
+      "n_clicked": 20,
+      "n_lengths": 1
+    }
+  ],
+  "propensity": [
+    {
+      "position": 0,
+      "n_articles": 788,
+      "n_shown": 163650,
+      "propensity": 0.9999999999999999
+    },
+    {
+      "position": 1,
+      "n_articles": 788,
+      "n_shown": 163746,
+      "propensity": 1.0148639392573364
+    },
+    {
+      "position": 2,
+      "n_articles": 788,
+      "n_shown": 163653,
+      "propensity": 1.022085212530562
+    },
+    {
+      "position": 3,
+      "n_articles": 788,
+      "n_shown": 163686,
+      "propensity": 1.0240299674027518
+    },
+    {
+      "position": 4,
+      "n_articles": 788,
+      "n_shown": 163350,
+      "propensity": 1.019749239875337
+    },
+    {
+      "position": 5,
+      "n_articles": 769,
+      "n_shown": 131691,
+      "propensity": 1.0201300402672664
+    },
+    {
+      "position": 6,
+      "n_articles": 758,
+      "n_shown": 106653,
+      "propensity": 1.0250398086364563
+    },
+    {
+      "position": 7,
+      "n_articles": 753,
+      "n_shown": 87711,
+      "propensity": 0.9937267361977536
+    },
+    {
+      "position": 8,
+      "n_articles": 741,
+      "n_shown": 71995,
+      "propensity": 1.0314814420628682
+    },
+    {
+      "position": 9,
+      "n_articles": 732,
+      "n_shown": 58028,
+      "propensity": 1.0402143201101246
+    },
+    {
+      "position": 10,
+      "n_articles": 722,
+      "n_shown": 48667,
+      "propensity": 0.9937908189408386
+    },
+    {
+      "position": 11,
+      "n_articles": 711,
+      "n_shown": 40802,
+      "propensity": 1.0052007729587613
+    },
+    {
+      "position": 12,
+      "n_articles": 700,
+      "n_shown": 34042,
+      "propensity": 0.993701339135421
+    },
+    {
+      "position": 13,
+      "n_articles": 672,
+      "n_shown": 27640,
+      "propensity": 0.9741815195939914
+    },
+    {
+      "position": 14,
+      "n_articles": 651,
+      "n_shown": 22454,
+      "propensity": 1.0647231883953174
+    },
+    {
+      "position": 15,
+      "n_articles": 630,
+      "n_shown": 18120,
+      "propensity": 1.0088638268916459
+    },
+    {
+      "position": 16,
+      "n_articles": 591,
+      "n_shown": 14187,
+      "propensity": 0.9475930645020343
+    },
+    {
+      "position": 17,
+      "n_articles": 538,
+      "n_shown": 11069,
+      "propensity": 1.0064569565443384
+    },
+    {
+      "position": 18,
+      "n_articles": 475,
+      "n_shown": 8383,
+      "propensity": 1.002832867766745
+    },
+    {
+      "position": 19,
+      "n_articles": 379,
+      "n_shown": 6490,
+      "propensity": 0.9305475388097768
+    },
+    {
+      "position": 20,
+      "n_articles": 309,
+      "n_shown": 5009,
+      "propensity": 1.0408655338485988
+    },
+    {
+      "position": 21,
+      "n_articles": 262,
+      "n_shown": 3986,
+      "propensity": 0.863074937061335
+    },
+    {
+      "position": 22,
+      "n_articles": 203,
+      "n_shown": 3095,
+      "propensity": 1.0753853674775886
+    },
+    {
+      "position": 23,
+      "n_articles": 173,
+      "n_shown": 2583,
+      "propensity": 0.8887836259044652
+    },
+    {
+      "position": 24,
+      "n_articles": 159,
+      "n_shown": 2205,
+      "propensity": 0.9521900205692841
+    },
+    {
+      "position": 25,
+      "n_articles": 130,
+      "n_shown": 1702,
+      "propensity": 1.2539264457463428
+    },
+    {
+      "position": 26,
+      "n_articles": 117,
+      "n_shown": 1333,
+      "propensity": 1.0297719783184605
+    },
+    {
+      "position": 27,
+      "n_articles": 76,
+      "n_shown": 923,
+      "propensity": 1.0737007618577374
+    },
+    {
+      "position": 28,
+      "n_articles": 61,
+      "n_shown": 718,
+      "propensity": 1.3162711977574442
+    },
+    {
+      "position": 29,
+      "n_articles": 51,
+      "n_shown": 592,
+      "propensity": 1.1845611744832616
+    },
+    {
+      "position": 30,
+      "n_articles": 42,
+      "n_shown": 499,
+      "propensity": 0.7536467025732847
+    },
+    {
+      "position": 31,
+      "n_articles": 36,
+      "n_shown": 388,
+      "propensity": 0.765209230204491
+    },
+    {
+      "position": 32,
+      "n_articles": 28,
+      "n_shown": 305,
+      "propensity": 0.8841588276764143
+    },
+    {
+      "position": 33,
+      "n_articles": 25,
+      "n_shown": 229,
+      "propensity": 0.6731589061623708
+    },
+    {
+      "position": 34,
+      "n_articles": 23,
+      "n_shown": 216,
+      "propensity": 1.5871759462664254
+    },
+    {
+      "position": 35,
+      "n_articles": 18,
+      "n_shown": 158,
+      "propensity": 0.9078282882967355
+    },
+    {
+      "position": 36,
+      "n_articles": 14,
+      "n_shown": 131,
+      "propensity": 0.2706874066314655
+    },
+    {
+      "position": 37,
+      "n_articles": 13,
+      "n_shown": 104,
+      "propensity": 2.3270657988848806
+    },
+    {
+      "position": 38,
+      "n_articles": 11,
+      "n_shown": 70,
+      "propensity": 0.6853217188953081
+    },
+    {
+      "position": 39,
+      "n_articles": 10,
+      "n_shown": 67,
+      "propensity": 0.9928929444066488
+    },
+    {
+      "position": 40,
+      "n_articles": 6,
+      "n_shown": 32,
+      "propensity": 1.4583791110177724
+    },
+    {
+      "position": 41,
+      "n_articles": 4,
+      "n_shown": 28,
+      "propensity": 1.757301537499676
+    },
+    {
+      "position": 42,
+      "n_articles": 2,
+      "n_shown": 24,
+      "propensity": 0.0
+    },
+    {
+      "position": 43,
+      "n_articles": 2,
+      "n_shown": 19,
+      "propensity": 0.4471917640191796
+    },
+    {
+      "position": 44,
+      "n_articles": 2,
+      "n_shown": 21,
+      "propensity": 0.0
+    },
+    {
+      "position": 45,
+      "n_articles": 2,
+      "n_shown": 15,
+      "propensity": 0.0
+    },
+    {
+      "position": 46,
+      "n_articles": 1,
+      "n_shown": 7,
+      "propensity": 6.57629338260188
+    },
+    {
+      "position": 47,
+      "n_articles": 2,
+      "n_shown": 9,
+      "propensity": 0.0
+    },
+    {
+      "position": 48,
+      "n_articles": 2,
+      "n_shown": 3,
+      "propensity": 0.0
+    },
+    {
+      "position": 49,
+      "n_articles": 2,
+      "n_shown": 6,
+      "propensity": 0.0
+    },
+    {
+      "position": 50,
+      "n_articles": 2,
+      "n_shown": 8,
+      "propensity": 0.0
+    },
+    {
+      "position": 51,
+      "n_articles": 2,
+      "n_shown": 8,
+      "propensity": 0.0
+    }
+  ],
+  "observed_decay": 0.15554675567121118,
+  "stratified_decay": 1.1605334404383216,
+  "stratified_ratio_min": 0.8358709533214447,
+  "stratified_ratio_max": 1.1599297012302285,
+  "stratified_max_z": 2.620215272976581,
+  "propensity_decay": 0.0,
+  "propensity_min": 0.0,
+  "n_articles_used": 788,
+  "dataset": "ebnerd",
+  "variant": "small",
+  "split": "train",
+  "n_pairs": 2226294,
+  "n_impressions": 200328
+}

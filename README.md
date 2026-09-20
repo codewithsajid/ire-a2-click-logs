@@ -97,7 +97,7 @@ separately; conflating them is what Q3.3 forbids.
 | training candidate set | shown / retrieved / retrieved+union | each wins only on the framing it matches; the ordering inverts |
 | neural head form | unbounded / bounded | +0.0874 vs −0.0053 (EB-NeRD), −0.0971 vs +0.0045 (MIND) |
 | position bias | raw vs length-stratified vs article-fixed | **absent**: raw 6.4× decay is a 1/L artifact |
-| head vs tail | content vs article-log arms | content wins **both** slices — the lecture's prediction falsified, with the conditioning confound stated |
+| head vs tail | content vs article-log arms | **the verdict flips with the framing**: content wins all four slices in-impression, but through the cascade MIND inverts and article-log wins both — so the claim is a property of the candidate set, not of the data |
 | MIND history direction | newest-last / newest-first | unknowable from the data; worth 0.5% AUC, so priced rather than guessed |
 
 Bugs the harness caught before they became results: an expanding mean that used row
@@ -129,15 +129,19 @@ uv sync        # environment
 make a2        # Q1 -> Q9 at dev scale, every report
 ```
 
-Per-question targets if you want one piece: `make a2-q1 a2-q2 a2-q3 a2-q4 a2-q5`,
-plus `a2-test`, `a2-note`, `a2-log`, and `a2-submit` for the leaderboard files at
-large scale (hours). `make a2` is `scripts/run_overnight.sh`.
+`make a2` is an ordered chain — design matrix, Q1, Q2, Q3, Q5, Q4, the test
+suite, the design note, the AI usage log — and it ends by listing the
+deliverables it wrote. Per-question targets if you want one piece:
+`make a2-q1 a2-q2 a2-q3 a2-q4 a2-q5`, plus `a2-test`, `a2-note`, `a2-log`, and
+`a2-submit` for the leaderboard files at large scale (hours).
 
-`run_overnight.sh` is the one-command path: one step per line, each logged and
+`make a2-overnight` is the unattended subset (Q3 → Q5 only, and it assumes the
+design matrix and cascade already exist): one step per line, each logged and
 isolated so a single failure does not abandon the rest, with thread caps and
 unbuffered output. The latency benchmark is serialised by construction and
 **refuses to run on a loaded box** — a p99 taken under contention measures the
-contention, and nothing in the output would say so.
+contention, and nothing in the output would say so. Q4 runs last in the chain
+for the same reason.
 
 | target | question | writes |
 |---|---|---|

@@ -1,0 +1,28 @@
+{
+  "mind_raw_fields": {
+    "n_fields": 5,
+    "history_sample": "N55189 N42782 N34694 N45794 N18445 N63302 N10414 N19347 N31801",
+    "history_contains_time_chars": false
+  },
+  "mind_history_order": {
+    "n_users_both": 5766,
+    "n_grew": 0,
+    "verdict": "histories never grow between train and dev"
+  },
+  "ebnerd_history_order": {
+    "n_checked": 15143,
+    "ascending": 15143,
+    "descending": 0,
+    "verdict": "ascending (oldest-first)"
+  },
+  "store_history_timestamps": {
+    "mind": {
+      "n_ts": 0,
+      "n_art": 881790
+    },
+    "ebnerd": {
+      "n_ts": 2426247,
+      "n_art": 2426247
+    }
+  }
+}

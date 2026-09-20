@@ -2,6 +2,7 @@
   "dataset": "mind",
   "variant": "small",
   "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+  "pipeline": "in-impression",
   "cold_definition": {
     "fixed_threshold": 5,
     "impressions_under_fixed_threshold": 10306,
@@ -60,10 +61,63 @@
         0.39974,
         0.40444
       ],
-      "ild@10": 0.846296847753116,
+      "ild@10": 0.90316,
+      "ild@10_ci95": [
+        0.90275,
+        0.90355
+      ],
+      "ild@10_pooled_at_kmin": 0.846296847753116,
       "novelty@10": 28.55028175318742,
+      "novelty@10_ci95": [
+        28.49207,
+        28.60615
+      ],
       "coverage@10": 0.05674606824243539,
-      "n_lists": 73152
+      "coverage@10_ci95": [
+        0.05005,
+        0.05129
+      ],
+      "n_lists": 73152,
+      "calibration": {
+        "ece": 0.44312,
+        "brier": 0.23482,
+        "base_rate": 0.04064,
+        "mean_predicted": 0.48376,
+        "bins": [
+          {
+            "bin": 3,
+            "n": 12168,
+            "lo": 0.30000000000000004,
+            "hi": 0.4,
+            "mean_predicted": 0.3977,
+            "observed_rate": 0.00822
+          },
+          {
+            "bin": 4,
+            "n": 1894645,
+            "lo": 0.4,
+            "hi": 0.5,
+            "mean_predicted": 0.47047,
+            "observed_rate": 0.02732
+          },
+          {
+            "bin": 5,
+            "n": 833606,
+            "lo": 0.5,
+            "hi": 0.6000000000000001,
+            "mean_predicted": 0.51511,
+            "observed_rate": 0.07125
+          },
+          {
+            "bin": 6,
+            "n": 579,
+            "lo": 0.6000000000000001,
+            "hi": 0.7000000000000001,
+            "mean_predicted": 0.63906,
+            "observed_rate": 0.23489
+          }
+        ]
+      }
     },
     "content-only": {
       "n_impressions": 73152,
@@ -92,10 +146,71 @@
         0.4027,
         0.40747
       ],
-      "ild@10": 0.8425702456309935,
+      "ild@10": 0.90198,
+      "ild@10_ci95": [
+        0.90156,
+        0.90238
+      ],
+      "ild@10_pooled_at_kmin": 0.8425702456309935,
       "novelty@10": 29.093965243562828,
+      "novelty@10_ci95": [
+        29.03544,
+        29.14887
+      ],
       "coverage@10": 0.05691468162727245,
-      "n_lists": 73152
+      "coverage@10_ci95": [
+        0.05071,
+        0.05196
+      ],
+      "n_lists": 73152,
+      "calibration": {
+        "ece": 0.43696,
+        "brier": 0.22955,
+        "base_rate": 0.04064,
+        "mean_predicted": 0.47759,
+        "bins": [
+          {
+            "bin": 3,
+            "n": 44645,
+            "lo": 0.30000000000000004,
+            "hi": 0.4,
+            "mean_predicted": 0.39403,
+            "observed_rate": 0.01355
+          },
+          {
+            "bin": 4,
+            "n": 1937325,
+            "lo": 0.4,
+            "hi": 0.5,
+            "mean_predicted": 0.46053,
+            "observed_rate": 0.02865
+          },
+          {
+            "bin": 5,
+            "n": 741351,
+            "lo": 0.5,
+            "hi": 0.6000000000000001,
+            "mean_predicted": 0.52364,
+            "observed_rate": 0.07039
+          },
+          {
+            "bin": 6,
+            "n": 17117,
+            "lo": 0.6000000000000001,
+            "hi": 0.7000000000000001,
+            "mean_predicted": 0.62437,
+            "observed_rate": 0.17211
+          },
+          {
+            "bin": 7,
+            "n": 560,
+            "lo": 0.7000000000000001,
+            "hi": 0.8,
+            "mean_predicted": 0.71413,
+            "observed_rate": 0.275
+          }
+        ]
+      }
     },
     "article-log-only": {
       "n_impressions": 73152,
@@ -124,10 +239,39 @@
         0.28473,
         0.28898
       ],
-      "ild@10": 0.9347152417934681,
+      "ild@10": 0.94393,
+      "ild@10_ci95": [
+        0.94371,
+        0.94412
+      ],
+      "ild@10_pooled_at_kmin": 0.9347152417934681,
       "novelty@10": 30.82985552781421,
+      "novelty@10_ci95": [
+        30.77567,
+        30.88612
+      ],
       "coverage@10": 0.06762929580919096,
-      "n_lists": 73152
+      "coverage@10_ci95": [
+        0.06383,
+        0.06492
+      ],
+      "n_lists": 73152,
+      "calibration": {
+        "ece": 0.52678,
+        "brier": 0.31651,
+        "base_rate": 0.04064,
+        "mean_predicted": 0.56742,
+        "bins": [
+          {
+            "bin": 5,
+            "n": 2740998,
+            "lo": 0.5,
+            "hi": 0.6000000000000001,
+            "mean_predicted": 0.56742,
+            "observed_rate": 0.04064
+          }
+        ]
+      }
     }
   },
   "slices": {

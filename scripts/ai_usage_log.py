@@ -43,7 +43,11 @@ def decisions(path: str):
     questions -- so a log built only from prompt text would credit the assistant
     with choices the human actually made.
     """
-    asked: set[str] = set()
+    # id -> the question texts as *asked*. Reading them from the tool input
+    # rather than from the result string matters: several questions quote the
+    # spec, so they contain double quotes, and a `"([^"]+)"="([^"]+)"` scan of
+    # the result truncates those to an empty or one-character question.
+    asked: dict[str, list[str]] = {}
     for line in open(path, errors="replace"):
         try:
             d = json.loads(line)
@@ -53,7 +57,8 @@ def decisions(path: str):
             for b in d.get("message", {}).get("content", []) or []:
                 if isinstance(b, dict) and b.get("type") == "tool_use" \
                         and b.get("name") == "AskUserQuestion":
-                    asked.add(b["id"])
+                    asked[b["id"]] = [q.get("question", "")
+                                      for q in (b.get("input") or {}).get("questions", [])]
         if d.get("type") == "user" and isinstance(d.get("message", {}).get("content"), list):
             for b in d["message"]["content"]:
                 if isinstance(b, dict) and b.get("type") == "tool_result" \
@@ -61,8 +66,14 @@ def decisions(path: str):
                     txt = b.get("content")
                     if isinstance(txt, list):
                         txt = " ".join(x.get("text", "") for x in txt if isinstance(x, dict))
-                    for q, a in re.findall(r'"([^"]+)"="([^"]+)"', txt or ""):
-                        yield q, a
+                    txt = txt or ""
+                    for q in asked[b["tool_use_id"]]:
+                        key = f'"{q}"="'
+                        i = txt.find(key)
+                        if i < 0:
+                            continue
+                        j = txt.find('"', i + len(key))
+                        yield q, txt[i + len(key):j if j > 0 else None]
 
 
 def tool_calls(path: str) -> dict[str, int]:

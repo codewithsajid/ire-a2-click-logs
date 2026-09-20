@@ -1,0 +1,297 @@
+{
+  "dataset": "ebnerd",
+  "variant": "small",
+  "splits": {
+    "test": {
+      "n_rows": 2928942,
+      "features": [
+        {
+          "feature": "n_candidates",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 89
+        },
+        {
+          "feature": "device_type",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 4
+        },
+        {
+          "feature": "is_subscriber",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.9332,
+          "n_distinct": 2
+        },
+        {
+          "feature": "is_sso_user",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.8992,
+          "n_distinct": 2
+        },
+        {
+          "feature": "read_time",
+          "family": "grey",
+          "null_frac": 0.0,
+          "zero_frac": 0.0029,
+          "n_distinct": 1337
+        },
+        {
+          "feature": "scroll_percentage",
+          "family": "grey",
+          "null_frac": 0.7039,
+          "zero_frac": 0.7039,
+          "n_distinct": 94
+        },
+        {
+          "feature": "position",
+          "family": "grey",
+          "null_frac": 0.0,
+          "zero_frac": 0.0835,
+          "n_distinct": 99
+        },
+        {
+          "feature": "position_frac",
+          "family": "grey",
+          "null_frac": 0.0,
+          "zero_frac": 0.0835,
+          "n_distinct": 2583
+        },
+        {
+          "feature": "session_rank",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.4525,
+          "n_distinct": 33
+        },
+        {
+          "feature": "session_seconds",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.4526,
+          "n_distinct": 1688
+        },
+        {
+          "feature": "secs_since_prev",
+          "family": "context",
+          "null_frac": 0.4525,
+          "zero_frac": 0.4526,
+          "n_distinct": 1403
+        },
+        {
+          "feature": "prior_read_time",
+          "family": "user",
+          "null_frac": 0.0576,
+          "zero_frac": 0.0578,
+          "n_distinct": 53890
+        },
+        {
+          "feature": "prior_scroll",
+          "family": "user",
+          "null_frac": 0.0576,
+          "zero_frac": 0.0576,
+          "n_distinct": 2561
+        },
+        {
+          "feature": "prior_impressions",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0576,
+          "n_distinct": 176
+        },
+        {
+          "feature": "ctr_smoothed",
+          "family": "article",
+          "null_frac": 0.806,
+          "zero_frac": 0.806,
+          "n_distinct": 1546
+        },
+        {
+          "feature": "clicks_decayed",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.8418,
+          "n_distinct": 1676
+        },
+        {
+          "feature": "prior_clicks",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.8418,
+          "n_distinct": 448
+        },
+        {
+          "feature": "prior_inview",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.806,
+          "n_distinct": 1103
+        },
+        {
+          "feature": "n_hist",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 832
+        },
+        {
+          "feature": "clicks_24h",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.1303,
+          "n_distinct": 96
+        },
+        {
+          "feature": "clicks_7d",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0091,
+          "n_distinct": 423
+        },
+        {
+          "feature": "hours_since_last_click",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 13985
+        },
+        {
+          "feature": "top_category_share",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 4885
+        },
+        {
+          "feature": "n_categories",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 14
+        },
+        {
+          "feature": "category_entropy",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.001,
+          "n_distinct": 13234
+        },
+        {
+          "feature": "age_hours",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 721526
+        },
+        {
+          "feature": "art_read_time",
+          "family": "rolling",
+          "null_frac": 0.0372,
+          "zero_frac": 0.0375,
+          "n_distinct": 177592
+        },
+        {
+          "feature": "art_dwell_n",
+          "family": "rolling",
+          "null_frac": 0.0372,
+          "zero_frac": 0.0372,
+          "n_distinct": 1551
+        },
+        {
+          "feature": "roll_inview",
+          "family": "article",
+          "null_frac": 0.0016,
+          "zero_frac": 0.0016,
+          "n_distinct": 21279
+        },
+        {
+          "feature": "roll_clicks",
+          "family": "rolling",
+          "null_frac": 0.0016,
+          "zero_frac": 0.0372,
+          "n_distinct": 1552
+        },
+        {
+          "feature": "roll_ctr",
+          "family": "rolling",
+          "null_frac": 0.0016,
+          "zero_frac": 0.0372,
+          "n_distinct": 719028
+        },
+        {
+          "feature": "roll_age_hours",
+          "family": "article",
+          "null_frac": 0.0016,
+          "zero_frac": 0.003,
+          "n_distinct": 403227
+        },
+        {
+          "feature": "cat_share",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0659,
+          "n_distinct": 18326
+        },
+        {
+          "feature": "cat_clicks",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0659,
+          "n_distinct": 378
+        },
+        {
+          "feature": "cat_recency",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0659,
+          "n_distinct": 97003
+        },
+        {
+          "feature": "cat_recency_share",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0659,
+          "n_distinct": 98739
+        },
+        {
+          "feature": "bm25",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0287,
+          "n_distinct": 1706204
+        },
+        {
+          "feature": "emb_cos",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 1807009
+        },
+        {
+          "feature": "emb_recent",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 1825875
+        },
+        {
+          "feature": "emb_max",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 270174
+        }
+      ],
+      "emptiness": {
+        "no_history": 0.0,
+        "no_click_time": 0.0,
+        "article_unclicked_before": 0.8417537800338826,
+        "article_unseen_before": 0.8060046938450812
+      }
+    }
+  }
+}

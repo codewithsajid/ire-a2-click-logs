@@ -10,7 +10,7 @@
 
 
 # ============================================================ Assignment 2
-.PHONY: a2 a2-features a2-q1 a2-q2 a2-q3 a2-q4 a2-q5 a2-note a2-log a2-submit a2-test
+.PHONY: a2 a2-overnight a2-features a2-q1 a2-q2 a2-q3 a2-q4 a2-q5 a2-note a2-log a2-submit a2-test
 PY2 ?= .venv/bin/python
 DS2 ?= ebnerd mind
 V2  ?= small
@@ -20,7 +20,20 @@ export OMP_NUM_THREADS ?= 12
 export POLARS_MAX_THREADS ?= 12
 export PYTHONUNBUFFERED = 1
 
-a2:                          ## A2 one-command reproduce: Q1 -> Q9 at dev scale
+# The one-command reproduce Q7.1 asks for. It is an ordered dependency chain,
+# not a delegation to run_overnight.sh: that script starts at Q3 and assumes
+# the design matrix and the stage-one cascade already exist, so on a clean
+# checkout it would regenerate the reports from JSONs that were never built.
+a2: a2-features a2-q1 a2-q2 a2-q3 a2-q5 a2-q4 a2-test a2-note a2-log  ## A2 one-command reproduce: Q1 -> Q9 at dev scale
+	@echo
+	@echo 'A2 reproduced at dev scale. Deliverables:'
+	@ls -1 reports/q1/q1_features.md reports/q2/q2_reranker.md \
+	       reports/q3/q3_baseline.md reports/q4/q4_serving.md \
+	       reports/q5/q5_evaluation.md reports/a2_design_note.pdf \
+	       reports/ai_usage_log.md 2>/dev/null
+	@echo 'Leaderboard files (large scale, hours): make a2-submit'
+
+a2-overnight:                ## the unattended subset: Q3 -> Q5 only, one log per step
 	bash scripts/run_overnight.sh
 
 a2-features:                 ## Q1/Q2 design matrix + first re-ranker (both datasets)
@@ -49,8 +62,10 @@ a2-q4:                       ## Q4 serving + scale. REFUSES on a loaded box, by 
 	@for d in $(DS2); do $(PY2) scripts/q4_serving.py --dataset $$d --variant $(V2); done
 	$(PY2) scripts/q4_report.py
 
-a2-q5:                       ## Q5 all metrics, both slices, CIs
-	@for d in $(DS2); do $(PY2) scripts/q5_eval.py --dataset $$d --variant $(V2); done
+a2-q5:                       ## Q5 all metrics, both framings, both slices, CIs
+	@for d in $(DS2); do \
+	  $(PY2) scripts/q5_eval.py --dataset $$d --variant $(V2) --pipeline two-stage; \
+	  $(PY2) scripts/q5_eval.py --dataset $$d --variant $(V2) --pipeline in-impression; done
 	$(PY2) scripts/q5_report.py
 
 a2-submit:                   ## Q5/Q7.1 leaderboard files at large scale (hours)

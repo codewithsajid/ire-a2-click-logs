@@ -27,6 +27,7 @@ reports/design_note.html
 
 # A2
 artifacts/
-reports/q1/
+reports/q1/*.npy
+reports/q1/*.parquet
 reports/q2/model_*.txt
 uv_sync.log

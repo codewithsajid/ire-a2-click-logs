@@ -1,0 +1,262 @@
+{
+  "dataset": "mind",
+  "variant": "small",
+  "splits": {
+    "test": {
+      "n_rows": 2740998,
+      "features": [
+        {
+          "feature": "n_candidates",
+          "family": "context",
+          "null_frac": 0.0,
+          "zero_frac": 0.0,
+          "n_distinct": 292
+        },
+        {
+          "feature": "position",
+          "family": "grey",
+          "null_frac": 0.0,
+          "zero_frac": 0.0267,
+          "n_distinct": 295
+        },
+        {
+          "feature": "position_frac",
+          "family": "grey",
+          "null_frac": 0.0,
+          "zero_frac": 0.0267,
+          "n_distinct": 25947
+        },
+        {
+          "feature": "session_rank",
+          "family": "context",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "session_seconds",
+          "family": "context",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "secs_since_prev",
+          "family": "context",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "prior_read_time",
+          "family": "user",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "prior_scroll",
+          "family": "user",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "prior_impressions",
+          "family": "user",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "ctr_smoothed",
+          "family": "article",
+          "null_frac": 0.2127,
+          "zero_frac": 0.2127,
+          "n_distinct": 1643
+        },
+        {
+          "feature": "clicks_decayed",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.5486,
+          "n_distinct": 1824
+        },
+        {
+          "feature": "prior_clicks",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.5486,
+          "n_distinct": 254
+        },
+        {
+          "feature": "prior_inview",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.2127,
+          "n_distinct": 1183
+        },
+        {
+          "feature": "n_hist",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.0302,
+          "n_distinct": 298
+        },
+        {
+          "feature": "clicks_24h",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.9235,
+          "n_distinct": 24
+        },
+        {
+          "feature": "clicks_7d",
+          "family": "user",
+          "null_frac": 0.0,
+          "zero_frac": 0.877,
+          "n_distinct": 64
+        },
+        {
+          "feature": "hours_since_last_click",
+          "family": "user",
+          "null_frac": 0.877,
+          "zero_frac": 0.877,
+          "n_distinct": 5835
+        },
+        {
+          "feature": "top_category_share",
+          "family": "user",
+          "null_frac": 0.0302,
+          "zero_frac": 0.0302,
+          "n_distinct": 2490
+        },
+        {
+          "feature": "n_categories",
+          "family": "user",
+          "null_frac": 0.0302,
+          "zero_frac": 0.0302,
+          "n_distinct": 16
+        },
+        {
+          "feature": "category_entropy",
+          "family": "user",
+          "null_frac": 0.0302,
+          "zero_frac": 0.0534,
+          "n_distinct": 18067
+        },
+        {
+          "feature": "age_hours",
+          "family": "article",
+          "null_frac": 0.0,
+          "zero_frac": 0.0009,
+          "n_distinct": 366888
+        },
+        {
+          "feature": "art_read_time",
+          "family": "rolling",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "art_dwell_n",
+          "family": "rolling",
+          "null_frac": 1.0,
+          "zero_frac": 1.0,
+          "n_distinct": 1
+        },
+        {
+          "feature": "roll_inview",
+          "family": "article",
+          "null_frac": 0.002,
+          "zero_frac": 0.002,
+          "n_distinct": 44147
+        },
+        {
+          "feature": "roll_clicks",
+          "family": "rolling",
+          "null_frac": 0.002,
+          "zero_frac": 0.0374,
+          "n_distinct": 7716
+        },
+        {
+          "feature": "roll_ctr",
+          "family": "rolling",
+          "null_frac": 0.002,
+          "zero_frac": 0.0374,
+          "n_distinct": 892184
+        },
+        {
+          "feature": "roll_age_hours",
+          "family": "article",
+          "null_frac": 0.002,
+          "zero_frac": 0.0036,
+          "n_distinct": 74557
+        },
+        {
+          "feature": "cat_share",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.3451,
+          "n_distinct": 5276
+        },
+        {
+          "feature": "cat_clicks",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.3451,
+          "n_distinct": 153
+        },
+        {
+          "feature": "cat_recency",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.3451,
+          "n_distinct": 95622
+        },
+        {
+          "feature": "cat_recency_share",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.3451,
+          "n_distinct": 140269
+        },
+        {
+          "feature": "bm25",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.1733,
+          "n_distinct": 1265014
+        },
+        {
+          "feature": "emb_cos",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0302,
+          "n_distinct": 2289789
+        },
+        {
+          "feature": "emb_recent",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0302,
+          "n_distinct": 2290480
+        },
+        {
+          "feature": "emb_max",
+          "family": "match",
+          "null_frac": 0.0,
+          "zero_frac": 0.0302,
+          "n_distinct": 867303
+        }
+      ],
+      "emptiness": {
+        "no_history": 0.030247012219636788,
+        "no_click_time": 0.8769594140528377,
+        "article_unclicked_before": 0.548636299625173,
+        "article_unseen_before": 0.21269041422138943
+      }
+    }
+  }
+}
