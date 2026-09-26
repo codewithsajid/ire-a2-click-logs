@@ -94,10 +94,11 @@ def score_submit_chunked(fs, model, feats, emb, k1, b, chunk: int,
     parts = []
     for start in range(0, n_imp, chunk):
         stop = min(start + chunk, n_imp)
-        legacy = out_dir / f"submit_scores_{start}.parquet"
-        if legacy.exists() and not rebuild:
-            parts.append(pl.read_parquet(legacy)); print(f"     [{start:,}] cached")
-            continue
+        # No legacy single-name cache here any more: it was keyed on `start`
+        # alone and assumed to cover [start, stop), which stops being true the
+        # moment the chunk size or the slot budget changes. The slot-bounded
+        # names below carry both ends, so a stale one cannot be mistaken for a
+        # range it does not hold.
         # split this impression range into slot-bounded pieces
         seg = n_cand.slice(start, stop - start)
         cum = seg["n_candidates"].cast(pl.Int64).cum_sum().to_numpy()
@@ -229,7 +230,25 @@ def main() -> None:
 
     a.out.mkdir(parents=True, exist_ok=True)
     txt = a.out / f"{a.dataset}_rerank.txt"
-    n = write_submission(joined.select("impression_id", "_scores"), txt)
+    n = write_submission(joined.select("src_row", "impression_id", "_scores"), txt,
+                         order_by="src_row")
+
+    # Verify the file against the raw split rather than trusting the writer.
+    # The line count alone cannot see a chunk boundary that emits one row twice
+    # and drops another, which is exactly the bug this guards -- so compare the
+    # id sequence itself, in order.
+    want = raw.select("impression_id").collect()["impression_id"].to_numpy()
+    got = np.fromiter((int(ln.split(" ", 1)[0]) for ln in open(txt)),
+                      dtype=np.int64, count=n)
+    if len(got) != len(want) or not np.array_equal(got, want):
+        bad = int(np.flatnonzero(got[:len(want)] != want[:len(got)])[0]) \
+            if len(got) == len(want) else -1
+        raise SystemExit(
+            f"submission does not reproduce the raw id sequence "
+            f"(wrote {len(got):,}, raw {len(want):,}"
+            + (f", first mismatch at line {bad + 1:,}" if bad >= 0 else "")
+            + ") -- refusing to ship")
+    print(f"   id sequence matches the raw file exactly ({len(want):,} rows)")
     zp = zip_submission(txt, a.out / f"{a.dataset}_rerank.zip", arcname=ARCNAME[a.dataset])
     print(f"   wrote {n:,} lines -> {txt}")
     print(f"   zipped as {ARCNAME[a.dataset]} -> {zp} "

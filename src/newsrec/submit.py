@@ -97,29 +97,50 @@ def raw_behaviours(fs: FeatureStore, raw_root: Path) -> tuple[pl.LazyFrame, pl.D
     return lf, pl.Utf8
 
 
-def write_submission(lf: pl.LazyFrame, path: Path, chunk_rows: int = 2_000_000) -> int:
-    """Write ranked predictions, streaming in row chunks."""
+def write_submission(lf: pl.LazyFrame, path: Path, chunk_rows: int = 2_000_000,
+                     order_by: str | None = None) -> int:
+    """Write ranked predictions, streaming in row chunks.
+
+    The frame is materialised to a temporary parquet before slicing. `lf` is
+    the product of a join, and a *lazy* slice re-runs the entire plan for every
+    chunk -- a hash join does not promise the same row order across two
+    executions, so rows near a boundary were emitted by both neighbouring
+    slices while others were emitted by neither. That cost 193 of MIND's
+    2,370,727 lines and 29,003 of EB-NeRD's, and it was invisible in the line
+    count because each slice still returned exactly `chunk_rows` rows.
+
+    `order_by` is a unique column (the raw row index) that fixes the output
+    order, so the file lands in raw file order rather than join order.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    total = lf.select(pl.len()).collect().item()
-    written = 0
-    with open(path, "w") as fh:
-        for start in range(0, total, chunk_rows):
-            part = (
-                lf.slice(start, chunk_rows)
-                .with_columns(_rank_expr().alias("_ranks"))
-                .select(
-                    pl.format("{} [{}]",
-                              pl.col("impression_id"),
-                              pl.col("_ranks").cast(pl.List(pl.Utf8)).list.join(","))
-                    .alias("line")
+    tmp = path.with_suffix(".ordered.parquet")
+    if order_by:
+        lf = lf.sort(order_by)
+    lf.sink_parquet(tmp)                     # one execution; order now fixed on disk
+    try:
+        scan = pl.scan_parquet(tmp)
+        total = scan.select(pl.len()).collect().item()
+        written = 0
+        with open(path, "w") as fh:
+            for start in range(0, total, chunk_rows):
+                part = (
+                    scan.slice(start, chunk_rows)
+                    .with_columns(_rank_expr().alias("_ranks"))
+                    .select(
+                        pl.format("{} [{}]",
+                                  pl.col("impression_id"),
+                                  pl.col("_ranks").cast(pl.List(pl.Utf8)).list.join(","))
+                        .alias("line")
+                    )
+                    .collect(engine="streaming")
                 )
-                .collect(engine="streaming")
-            )
-            fh.write("\n".join(part["line"].to_list()))
-            fh.write("\n")
-            written += part.height
-    return written
+                fh.write("\n".join(part["line"].to_list()))
+                fh.write("\n")
+                written += part.height
+        return written
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 # What each grader expects to find *inside* the zip. This is not cosmetic: both

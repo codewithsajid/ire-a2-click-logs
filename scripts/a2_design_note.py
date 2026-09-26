@@ -117,7 +117,7 @@ would have been a confound in the ablations.</p>
 (history depth, activity, category breadth, prior dwell), article-only (CTR,
 decayed and rolling popularity, freshness), match (BM25, three embedding
 similarities, category affinity), and serving context (session position, device).
-Two boundaries are drawn deliberately.</p>
+Two boundaries matter.</p>
 
 <p><i>Availability, not usefulness, decides what ships.</i> The Codabench split
 has no labels, so rolling <i>click</i> counters cannot be computed there while
@@ -129,12 +129,11 @@ cost of the evaluation setup, never as a leaderboard result.</p>
 <p><i>The behaviour window is enforced per row, not per split.</i> A1's tests
 check the store at split granularity, which cannot see whether a session feature
 read a row thirty seconds in the future. <code>tests/test_behaviour_window.py</code>
-tests the property by construction &mdash; assemble the matrix, delete the future,
-assemble again, require the survivors to match &mdash; and it found two real defects:
-an expanding mean that used row order as a tiebreak (EB-NeRD stamps to the
-second, so a visit beginning at the same instant could contribute its dwell to
-the row being scored), and a user-lookup that clipped an out-of-range id onto a
-real, different user.</p>
+assembles the matrix, deletes the future, assembles again and requires the
+survivors to match. It caught two bugs: an expanding mean that used row order as
+a tiebreak (EB-NeRD stamps to the second, so a visit beginning at the same
+instant could contribute its dwell to the row being scored), and a user lookup
+that clipped an out-of-range id onto a real, different user.</p>
 
 <h3>1.1 &nbsp;Stage-one recall is the ceiling on everything downstream</h3>
 <table><tr><th>dataset</th><th>K</th><th>recall@K</th><th>impressions with no click retrieved</th></tr>
@@ -201,9 +200,8 @@ def sec_results() -> str:
 <h2>2 &nbsp;Baseline, improvement, ablation, CI</h2>
 
 <h3>2.1 &nbsp;Re-ranking, in-impression &mdash; what both leaderboards score</h3>
-<p><i>Before</i> is A1's best single signal on identical rows, which is the honest
-baseline for what <i>learning a combination</i> buys rather than what it buys over
-nothing.</p>
+<p><i>Before</i> is A1's best single signal on identical rows, so the delta measures
+what <i>learning a combination</i> buys rather than what it buys over nothing.</p>
 <table><tr><th>dataset</th><th>A1 emb (before)</th><th>AUC</th><th>MRR</th>
 <th>nDCG@5</th><th>nDCG@10</th><th class=dim>production AUC</th></tr>
 {''.join(rows)}</table>
@@ -231,8 +229,8 @@ dead fraction falls to <b>{(dead('ebnerd','roll_clicks') or 0):.1%}</b> and
 {''.join(ab)}</table>
 
 <p>Two axes are kept apart, because reporting one number for an architecture change
-and a feature change at once is what Q3.3 forbids. The same feature change measured
-on the neural baseline:</p>
+and a feature change at once would confound them. The same feature change on the
+neural baseline:</p>
 <table><tr><th>dataset</th><th>model</th><th>AUC</th><th>&Delta; AUC (paired, 95% CI)</th></tr>
 {''.join(nr)}</table>
 
@@ -314,18 +312,17 @@ Holding list length fixed, the curve is flat.</p>
 {''.join(pb)}</table>
 <p>Neither dataset stores candidates in rendered order. Inverse propensity weighting was
 therefore dropped as the improvement &mdash; it would correct a confound that is absent &mdash;
-and <code>position</code> stays quarantined on evidence rather than caution.</p>
+<code>position</code> is excluded on that evidence.</p>
 
 <p><b>Head versus tail.</b> The claim is that memorised article statistics are unbeatable
 on the head and empty on the tail. Measured with the arms defined at column level:</p>
 <table><tr><th>dataset</th><th>slice</th><th>content AUC</th><th>article-log AUC</th><th>winner</th></tr>
 {''.join(ht)}</table>
-<p><b>The answer depends on the candidate set.</b> In-impression, content wins all four
-slices and the claim is falsified; through the cascade MIND inverts, because stage one has
-already discarded the articles a popularity prior would rank wrongly. The claim is a
-property of the candidate set, not of the data &mdash; on 420 impressions, the thinnest
-evidence here. A confound it cannot escape: the slice is defined by exposure count and the
-article-log arm is built from exposure counts, so conditioning removes that variance inside
+<p>The answer depends on the candidate set. In-impression, content wins all four slices
+and the claim fails; through the cascade MIND inverts, because stage one has already
+discarded the articles a popularity prior would rank wrongly &mdash; though that cell rests
+on 420 impressions. One confound remains: the slice is defined by exposure count and the
+article-log arm is built from exposure counts, so conditioning removes that variance within
 the slice. The arms compare <i>within</i> a slice, never <i>across</i> one.</p>
 """
 
@@ -398,8 +395,8 @@ all</td></tr>
 two concurrent steps request twice the machine. Measured at load 77 on 48 cores, an
 ablation that takes 139&nbsp;s had not finished in 59&nbsp;minutes</td><td>explicit thread
 caps &mdash; the same work finished 25&times; faster at 12 threads</td></tr>
-<tr><td>single node</td><td>one box, no replication</td><td>the one item a single machine
-cannot measure, stated as a gap rather than estimated</td></tr>
+<tr><td>single node</td><td>one box, no replication</td><td>not measurable on one box; a
+gap rather than an estimate</td></tr>
 </table>
 
 <h2>6 &nbsp;What the measurements changed</h2>
@@ -407,8 +404,8 @@ cannot measure, stated as a gap rather than estimated</td></tr>
 <li><b>Position bias was assumed and is absent.</b> The raw curve decays 6.4&times; and is an
 artifact of list length. IPW was dropped as the improvement on that evidence.</li>
 <li><b>The dwell feature's denominator beat the dwell.</b> A rolling click counter arrived
-by accident as an intermediate and turned out to be the strongest feature in the model;
-it was then built properly, for both datasets, as the shipped improvement.</li>
+as an intermediate and turned out to be the strongest feature in the model; it was then
+built properly for both datasets and shipped as the improvement.</li>
 <li><b>Each training candidate set wins on the framing it matches.</b> Training stage two on
 retrieved sets needs clicked articles unioned back in, and the union <i>is</i> the label &mdash;
 0.99 AUC on its own retrieved sets, below random in-impression.</li>
@@ -444,8 +441,8 @@ def main() -> None:
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>A2 design note</title><style>{CSS}</style></head><body>
 <h1>Learning from Click-Logs on EB-NeRD and MIND</h1>
-<div class=sub>CS4.406 Information Retrieval &amp; Extraction &mdash; Assignment 2.
-Every number is read from a JSON written by the code that produced it.</div>
+<div class=sub>CS4.406 Information Retrieval &amp; Extraction &mdash; Assignment 2 &middot; code:
+<a href="https://github.com/codewithsajid/ire-a2-click-logs">github.com/codewithsajid/ire-a2-click-logs</a></div>
 {sec_built()}{sec_results()}{sec_eval()}{sec_serving()}{sec_break()}
 </body></html>"""
 
