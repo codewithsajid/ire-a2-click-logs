@@ -1,22 +1,23 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <title>A2 design note</title><style>
 @page { size: A4; margin: 1in; }
-body { font: 11pt/1.42 "DejaVu Serif", Georgia, serif; color: #111; }
+body { font: 11pt/1.34 "DejaVu Serif", Georgia, serif; color: #111; }
 h1 { font-size: 17pt; margin: 0 0 2pt; }
-h2 { font-size: 12.5pt; margin: 13pt 0 5pt; border-bottom: 1px solid #bbb; padding-bottom: 2pt; }
-h3 { font-size: 11pt; margin: 9pt 0 3pt; }
-p { margin: 4pt 0; text-align: justify; }
+h2 { font-size: 12.5pt; margin: 10pt 0 4pt; border-bottom: 1px solid #bbb; padding-bottom: 2pt; }
+h3 { font-size: 11pt; margin: 7pt 0 2pt; }
+p { margin: 3pt 0; text-align: justify; }
 code { font: 9.5pt "DejaVu Sans Mono", monospace; background: #f3f3f3; padding: 0 2px; }
-table { border-collapse: collapse; width: 100%; margin: 5pt 0 7pt; font-size: 8.8pt; }
+table { border-collapse: collapse; width: 100%; margin: 4pt 0 5pt; font-size: 8.8pt; }
 th, td { border: 1px solid #ccc; padding: 2.5pt 4pt; text-align: right; }
 th { background: #eee; font-weight: bold; }
 td:first-child, th:first-child, td:nth-child(2), th:nth-child(2) { text-align: left; }
 .ci { color: #555; font-size: 8pt; }
 .dim { color: #666; }
+img.shot { width: 100%; max-height: 2.7cm; object-fit: contain; object-position: left; border: 1px solid #ccc; margin: 3pt 0 5pt; }
 .sub { color: #444; font-size: 9.5pt; margin-bottom: 8pt; }
 .todo { background: #fff6e0; padding: 5pt; border-left: 3px solid #e0a000; }
 ol { margin: 4pt 0 4pt 16pt; padding: 0; }
-li { margin: 2pt 0; text-align: justify; }
+li { margin: 1.5pt 0; text-align: justify; }
 </style></head><body>
 <h1>Learning from Click-Logs on EB-NeRD and MIND</h1>
 <div class=sub>CS4.406 Information Retrieval &amp; Extraction &mdash; Assignment 2 &middot; code:
@@ -163,6 +164,16 @@ on 420 impressions. One confound remains: the slice is defined by exposure count
 article-log arm is built from exposure counts, so conditioning removes that variance within
 the slice. The arms compare <i>within</i> a slice, never <i>across</i> one.</p>
 
+<h3>3.2 &nbsp;Leaderboards</h3>
+<p>Both files are built at large scale and validated against the raw test set before upload:
+the written id sequence must equal the raw sequence element for element, and each rank list
+must be a permutation of its own candidate count. MIND returned <b>0.6660</b> AUC against
+<b>0.6496</b> for A1's semantic-only submission.</p>
+<img class=shot src="leaderboard/mind_a2_codabench_score.png" alt="MIND Codabench submissions">
+<p class=dim>EB-NeRD (13,536,710 rows, 205,925,868 slots) is submitted and queued: that
+competition runs one worker at 4&ndash;5&nbsp;h per job, so scores return in days. A1 hit the
+same queue.</p>
+
 <h2>4 &nbsp;Serving and scale</h2>
 <table><tr><th>dataset</th><th>ANN index</th><th>BM25 index</th><th>article vectors</th>
 <th>feature store (disk)</th><th>resident</th></tr><tr><td>EB-NeRD</td><td>4.91 MB</td><td>2.36 MB</td><td>60.76 MB</td><td>125.68 MB</td><td>237.26 MB</td></tr><tr><td>MIND</td><td>33.36 MB</td><td>12.89 MB</td><td>95.56 MB</td><td>53.2 MB</td><td>1006.13 MB</td></tr></table>
@@ -178,8 +189,8 @@ bound: A1 measured 110&nbsp;&rarr;&nbsp;467 q/s going from 1 to 48 leaves, 4.23&
 <tr><th>what breaks</th><th>why</th><th>the fix</th></tr>
 <tr><td>the frozen feature store</td><td>popularity fixed at the split boundary already
 leaves 84.2% of EB-NeRD candidate slots at a zero prior click count, and that fraction
-grows with catalogue churn</td><td>the rolling counters measured here (+0.0509 AUC), but
-served from a streaming aggregate rather than a batch job</td></tr>
+grows with catalogue churn</td><td>rolling counters from a streaming aggregate
+rather than a batch job (+0.0509 AUC)</td></tr>
 <tr><td>exact ANN search</td><td>A1 measured the flat-vs-HNSW crossover at N&asymp;8,000;
 the live universe passes it at 10&times; the window</td><td>HNSW &mdash; 9.4&times; throughput at
 125K articles for 96.5% fidelity, whose 42&nbsp;s single-threaded build becomes the new
@@ -189,26 +200,25 @@ bottleneck</td></tr>
 ~5&times;. A1 measured that the query path breaks at 10&times; the universe, not 10&times; the
 users</td></tr>
 <tr><td>the re-rank feature join</td><td>the cascade build OOMed at K=200 over 200k
-impressions; peak RSS is linear in rows, ~7.4&nbsp;GB per 5k impressions</td><td>chunked
-scoring, which is what makes the 205,925,868-slot EB-NeRD submission possible at
-all</td></tr>
-<tr><td>thread oversubscription</td><td>LightGBM and polars each default to every core;
-two concurrent steps request twice the machine. Measured at load 77 on 48 cores, an
-ablation that takes 139&nbsp;s had not finished in 59&nbsp;minutes</td><td>explicit thread
-caps &mdash; the same work finished 25&times; faster at 12 threads</td></tr>
+impressions; peak RSS is linear in rows, ~7.4&nbsp;GB per 5k impressions</td><td>chunked scoring &mdash; what makes the
+205.9M-slot EB-NeRD submission possible</td></tr>
+<tr><td>thread oversubscription</td><td>LightGBM and polars each default to every core, so
+two concurrent steps request twice the machine. At load 77 on 48 cores, an ablation that
+takes 139&nbsp;s had not finished in 59&nbsp;minutes</td><td>explicit thread caps &mdash;
+25&times; faster at 12 threads</td></tr>
 <tr><td>single node</td><td>one box, no replication</td><td>not measurable on one box; a
 gap rather than an estimate</td></tr>
 </table>
 
 <h2>6 &nbsp;What the measurements changed</h2>
 <ol>
-<li><b>Position bias was assumed and is absent.</b> The raw curve decays 6.4&times; and is an
-artifact of list length. IPW was dropped as the improvement on that evidence.</li>
+<li><b>Position bias was assumed and is absent.</b> The raw 6.4&times; decay is an artifact
+of list length, so IPW was dropped as the improvement.</li>
 <li><b>The dwell feature's denominator beat the dwell.</b> A rolling click counter arrived
-as an intermediate and turned out to be the strongest feature in the model; it was then
-built properly for both datasets and shipped as the improvement.</li>
-<li><b>Each training candidate set wins on the framing it matches.</b> Training stage two on
-retrieved sets needs clicked articles unioned back in, and the union <i>is</i> the label &mdash;
+as an intermediate and proved the strongest feature in the model; it was rebuilt properly
+and shipped as the improvement.</li>
+<li><b>Each training candidate set wins on the framing it matches.</b> Retrieved-set
+training needs clicks unioned back in, and the union <i>is</i> the label &mdash;
 0.99 AUC on its own retrieved sets, below random in-impression.</li>
 <li><b>Features unavailable at serving time are worth nothing here</b> (+0.0002 AUC, CI
 spans zero), which is consistent with the position-bias finding rather than independent
